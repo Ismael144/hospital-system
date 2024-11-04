@@ -1,0 +1,215 @@
+
+
+// #[derive(Debug, Clone, Copy, PartialEq, Eq, DbEnum)]
+// #[DieselType = "Patient_type"]  // Maps to the SQL type name in lowercase
+// pub enum PatientType {
+//     Inpatient,
+//     Outpatient,
+//     Emergency,
+// }
+
+// #[derive(Debug, Clone, Copy, PartialEq, Eq, DbEnum)]
+// #[DieselType = "Payment_status"]
+// pub enum PaymentStatus {
+//     Pending,
+//     Partial,
+//     Completed,
+//     Cancelled,
+//     Refunded,
+// }
+
+// #[derive(Debug, Clone, Copy, PartialEq, Eq, DbEnum)]
+// #[DieselType = "Procedure_type"]
+// pub enum ProcedureType {
+//     Surgery,
+//     Diagnostic,
+//     Laboratory,
+//     Radiology,
+//     Physical,
+//     Other,
+// }
+
+// #[derive(Debug, Clone, Copy, PartialEq, Eq, DbEnum)]
+// #[DieselType = "Visit_status"]
+// pub enum VisitStatus {
+//     Scheduled,
+//     CheckedIn,
+//     InProgress,
+//     Completed,
+//     Cancelled,
+//     NoShow,
+// }
+
+// Rest of the structs remain the same...
+
+// #[derive(Debug, Clone, Queryable, Identifiable)]
+// #[diesel(table_name = administered_medications)]
+// #[diesel(primary_key(admin_id))]
+// pub struct AdministeredMedication {
+//     pub admin_id: i32,
+//     pub prescription_id: Option<i32>,
+//     pub nurse_id: Option<i32>,
+//     pub administered_at: Option<DateTime<Utc>>,
+//     pub charges: Option<BigDecimal>,
+//     pub notes: Option<String>,
+//     pub created_at: Option<DateTime<Utc>>,
+// }
+
+// #[derive(Debug, Clone, Queryable, Identifiable)]
+// #[diesel(table_name = bed_allocations)]
+// #[diesel(primary_key(allocation_id))]
+// pub struct BedAllocation {
+//     pub allocation_id: i32,
+//     pub visit_id: Option<i32>,
+//     pub bed_id: Option<i32>,
+//     pub nurse_id: Option<i32>,
+//     pub start_time: Option<DateTime<Utc>>,
+//     pub end_time: Option<DateTime<Utc>>,
+//     pub daily_charge: BigDecimal,
+//     pub notes: Option<String>,
+//     pub created_at: Option<DateTime<Utc>>,
+//     pub updated_at: Option<DateTime<Utc>>,
+// }
+
+// #[derive(Debug, Clone, Queryable, Identifiable)]
+// #[diesel(table_name = beds)]
+// #[diesel(primary_key(bed_id))]
+// pub struct Bed {
+//     pub bed_id: i32,
+//     pub bed_number: String,
+//     pub ward: String,
+//     pub is_occupied: Option<bool>,
+//     pub notes: Option<String>,
+//     pub created_at: Option<DateTime<Utc>>,
+//     pub updated_at: Option<DateTime<Utc>>,
+// }
+
+// #[derive(Debug, Clone, Queryable, Identifiable)]
+// #[diesel(table_name = doctor_consultations)]
+// #[diesel(primary_key(consultation_id))]
+// pub struct DoctorConsultation {
+//     pub consultation_id: i32,
+//     pub visit_id: Option<i32>,
+//     pub doctor_id: Option<i32>,
+//     pub consultation_time: Option<DateTime<Utc>>,
+//     pub diagnosis: Option<String>,
+//     pub notes: Option<String>,
+//     pub charges: Option<BigDecimal>,
+//     pub discount_percentage: Option<i32>,
+//     pub discount_locked: Option<bool>,
+//     pub created_at: Option<DateTime<Utc>>,
+//     pub updated_at: Option<DateTime<Utc>>,
+// }
+
+// #[derive(Debug, Clone, Queryable, Identifiable)]
+// #[diesel(table_name = invoices)]
+// #[diesel(primary_key(invoice_id))]
+// pub struct Invoice {
+//     pub invoice_id: i32,
+//     pub visit_id: Option<i32>,
+//     pub generated_at: Option<DateTime<Utc>>,
+//     pub total_amount: BigDecimal,
+//     pub payment_status: Option<PaymentStatus>,
+//     pub notes: Option<String>,
+//     pub created_by: Option<i32>,
+//     pub updated_at: Option<DateTime<Utc>>,
+// }
+
+// #[derive(Debug, Clone, Queryable, Identifiable)]
+// #[diesel(table_name = medications)]
+// #[diesel(primary_key(medication_id))]
+// pub struct Medication {
+//     pub medication_id: i32,
+//     pub name: String,
+//     pub description: Option<String>,
+//     pub unit_price: BigDecimal,
+//     pub requires_prescription: Option<bool>,
+//     pub is_active: Option<bool>,
+//     pub created_at: Option<DateTime<Utc>>,
+//     pub updated_at: Option<DateTime<Utc>>,
+// }
+
+// #[derive(Debug, Clone, Queryable, Identifiable)]
+// #[diesel(table_name = patients)]
+// #[diesel(primary_key(patient_id))]
+// pub struct Patient {
+//     pub patient_id: i32,
+//     pub name: String,
+//     pub nin: Option<String>,
+//     pub age: Option<i32>,
+//     pub gender: Option<String>,
+//     pub patient_type: PatientType,
+//     pub phone: Option<String>,
+//     pub address: Option<String>,
+//     pub emergency_contact: Option<String>,
+//     pub emergency_phone: Option<String>,
+//     pub registered_by: Option<i32>,
+//     pub registered_at: Option<DateTime<Utc>>,
+//     pub updated_at: Option<DateTime<Utc>>,
+// }
+
+// #[derive(Debug, Clone, Queryable, Identifiable)]
+// #[diesel(table_name = prescriptions)]
+// #[diesel(primary_key(prescription_id))]
+// pub struct Prescription {
+//     pub prescription_id: i32,
+//     pub consultation_id: Option<i32>,
+//     pub medication_id: Option<i32>,
+//     pub dosage: String,
+//     pub frequency: String,
+//     pub duration_days: i32,
+//     pub notes: Option<String>,
+//     pub created_at: Option<DateTime<Utc>>,
+// }
+
+// #[derive(Debug, Clone, Queryable,  Identifiable)]
+// #[diesel(table_name = procedures)]
+// #[diesel(primary_key(procedure_id))]
+// pub struct Procedure {
+//     pub procedure_id: i32,
+//     pub visit_id: Option<i32>,
+//     pub doctor_id: Option<i32>,
+//     pub procedure_type: ProcedureType,
+//     pub procedure_time: Option<DateTime<Utc>>,
+//     pub description: Option<String>,
+//     pub notes: Option<String>,
+//     pub charges: Option<BigDecimal>,
+//     pub created_at: Option<DateTime<Utc>>,
+// }
+
+// #[derive(Debug, Clone, Queryable, Identifiable)]
+// #[diesel(table_name = triage_records)]
+// #[diesel(primary_key(triage_id))]
+// pub struct TriageRecord {
+//     pub triage_id: i32,
+//     pub visit_id: Option<i32>,
+//     pub nurse_id: Option<i32>,
+//     pub triage_time: Option<DateTime<Utc>>,
+//     pub temperature: Option<BigDecimal>,
+//     pub blood_pressure: Option<String>,
+//     pub heart_rate: Option<i32>,
+//     pub respiratory_rate: Option<i32>,
+//     pub oxygen_saturation: Option<i32>,
+//     pub weight: Option<BigDecimal>,
+//     pub height: Option<BigDecimal>,
+//     pub symptoms: Option<String>,
+//     pub notes: Option<String>,
+//     pub charges: Option<BigDecimal>,
+//     pub created_at: Option<DateTime<Utc>>,
+// }
+
+// #[derive(Debug, Clone, Queryable, Identifiable)]
+// #[diesel(table_name = visits)]
+// #[diesel(primary_key(visit_id))]
+// pub struct Visit {
+//     pub visit_id: i32,
+//     pub patient_id: Option<i32>,
+//     pub visit_date: Option<DateTime<Utc>>,
+//     pub status: VisitStatus,
+//     pub complaint: Option<String>,
+//     pub total_charges: Option<BigDecimal>,
+//     pub is_discharged: Option<bool>,
+//     pub discharge_date: Option<DateTime<Utc>>,
+//     pub created_at: Option<DateTime<Utc>>,
+//     pub updated_at: Option<DateTime<Utc>>,
+// }
