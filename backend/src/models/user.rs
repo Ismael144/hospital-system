@@ -1,10 +1,8 @@
+use crate::models::DieselResult;
 use crate::schema::users;
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
 use diesel_derive_enum;
-
-/// Generic diesel result, where Error variant is error coming from diesel
-type DieselResult<T> = Result<T, diesel::result::Error>;
 
 /// These are the roles of different kinds of users
 #[derive(diesel_derive_enum::DbEnum, Debug, Clone)]
@@ -60,10 +58,7 @@ impl User {
     }
 
     /// This method will fetch all users from the database
-    pub async fn select_all(
-        connection: &mut PgConnection,
-        new_user: NewUser<'_>,
-    ) -> DieselResult<Vec<User>> {
+    pub async fn select_all(connection: &mut PgConnection) -> DieselResult<Vec<User>> {
         users::table.load(connection)
     }
 

@@ -71,18 +71,6 @@
 //     pub updated_at: Option<DateTime<Utc>>,
 // }
 
-// #[derive(Debug, Clone, Queryable, Identifiable)]
-// #[diesel(table_name = beds)]
-// #[diesel(primary_key(bed_id))]
-// pub struct Bed {
-//     pub bed_id: i32,
-//     pub bed_number: String,
-//     pub ward: String,
-//     pub is_occupied: Option<bool>,
-//     pub notes: Option<String>,
-//     pub created_at: Option<DateTime<Utc>>,
-//     pub updated_at: Option<DateTime<Utc>>,
-// }
 
 // #[derive(Debug, Clone, Queryable, Identifiable)]
 // #[diesel(table_name = doctor_consultations)]
