@@ -1,23 +1,23 @@
 // @generated automatically by Diesel CLI.
 
 pub mod sql_types {
-    #[derive(diesel::query_builder::QueryId, Clone, diesel::sql_types::SqlType, Debug)]
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "patient_type"))]
     pub struct PatientType;
 
-    #[derive(diesel::query_builder::QueryId, Clone, diesel::sql_types::SqlType, Debug)]
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "payment_status"))]
     pub struct PaymentStatus;
 
-    #[derive(diesel::query_builder::QueryId, Clone, diesel::sql_types::SqlType, Debug)]
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "procedure_type"))]
     pub struct ProcedureType;
 
-    #[derive(diesel::query_builder::QueryId, Clone, diesel::sql_types::SqlType, Debug)]
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "user_role"))]
     pub struct UserRole;
 
-    #[derive(diesel::query_builder::QueryId, Clone, diesel::sql_types::SqlType)]
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "visit_status"))]
     pub struct VisitStatus;
 }
