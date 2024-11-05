@@ -13,16 +13,9 @@ async fn main() -> std::io::Result<()> {
     // Initialize tracing
     config::init_tracing();
 
-    HttpServer::new(|| {
-        // CORS(Cross Origin Resource Sharing) Configuration
-        let cors = Cors::default()
-            .allowed_methods(vec!["GET", "POST"])
-            .allowed_headers(vec![
-                http::header::CONTENT_TYPE,
-                http::header::AUTHORIZATION,
-            ])
-            .max_age(3600);
+    let cors = config::configure_cors();
 
+    HttpServer::new(|| {
         App::new().wrap(TracingLogger::default()).wrap(cors)
         // .service()
     })

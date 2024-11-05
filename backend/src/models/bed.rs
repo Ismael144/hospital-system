@@ -4,7 +4,7 @@ use chrono::{DateTime, Utc};
 use diesel::prelude::*;
 
 #[derive(Debug, Clone, Queryable, Identifiable, Selectable)]
-#[diesel(table_name = beds)]
+#[diesel(table_name = beds, check_for_backend(diesel::pg::Pg))]
 #[diesel(primary_key(bed_id))]
 pub struct Bed {
     pub bed_id: i32,
