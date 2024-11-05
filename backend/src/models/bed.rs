@@ -2,8 +2,9 @@ use crate::models::DieselResult;
 use crate::schema::beds;
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
+use serde::Serialize;
 
-#[derive(Debug, Clone, Queryable, Identifiable, Selectable)]
+#[derive(Debug, Clone, Queryable, Identifiable, Selectable, Serialize)]
 #[diesel(table_name = beds, check_for_backend(diesel::pg::Pg))]
 #[diesel(primary_key(bed_id))]
 pub struct Bed {
@@ -16,6 +17,7 @@ pub struct Bed {
     pub updated_at: Option<DateTime<Utc>>,
 }
 
+/// This struct will be used for data entries
 #[derive(Insertable, AsChangeset)]
 #[diesel(table_name = beds)]
 struct NewBed<'a> {

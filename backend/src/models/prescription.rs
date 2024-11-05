@@ -1,8 +1,10 @@
 use crate::models::DieselResult;
+use crate::schema::prescriptions;
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
+use serde::Serialize;
 
-#[derive(Debug, Clone, Queryable, Identifiable)]
+#[derive(Debug, Clone, Queryable, Identifiable, Serialize)]
 #[diesel(table_name = prescriptions)]
 #[diesel(primary_key(prescription_id))]
 pub struct Prescription {
@@ -15,4 +17,3 @@ pub struct Prescription {
     pub notes: Option<String>,
     pub created_at: Option<DateTime<Utc>>,
 }
-

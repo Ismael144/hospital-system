@@ -1,5 +1,7 @@
 use crate::models::DieselResult;
 use crate::models::{bed::Bed, user::User};
+use crate::schema::bed_allocations;
+use bigdecimal::BigDecimal;
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
 

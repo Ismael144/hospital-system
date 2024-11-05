@@ -1,9 +1,12 @@
+use crate::models::patient::Patient;
 use crate::models::DieselResult;
+use crate::schema::visits;
+use bigdecimal::BigDecimal;
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
-use crate::model::patient::Patient;
+use serde::Serialize;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, diesel_derive_enum::DbEnum)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, diesel_derive_enum::DbEnum, Serialize)]
 #[ExistingTypePath = "crate::schema::sql_types::VisitStatus"]
 pub enum VisitStatus {
     Scheduled,

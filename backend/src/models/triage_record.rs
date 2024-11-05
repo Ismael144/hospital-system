@@ -1,7 +1,11 @@
+use crate::impls::serde_impls::option_bigdecimal_serialize;
 use crate::models::DieselResult;
+use crate::models::{user::User, visit::Visit};
+use crate::schema::triage_records;
+use bigdecimal::BigDecimal;
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
-use crate::models::{user::User, visit::Visit}; 
+use serde::Serialize;
 
 #[derive(Debug, Clone, Queryable, Identifiable, Serialize)]
 #[diesel(table_name = triage_records)]
@@ -12,16 +16,19 @@ pub struct TriageRecord {
     pub visit_id: Option<i32>,
     pub nurse_id: Option<i32>,
     pub triage_time: Option<DateTime<Utc>>,
+    #[serde(with = "option_bigdecimal_serialize")]
     pub temperature: Option<BigDecimal>,
     pub blood_pressure: Option<String>,
     pub heart_rate: Option<i32>,
     pub respiratory_rate: Option<i32>,
     pub oxygen_saturation: Option<i32>,
+    #[serde(with = "option_bigdecimal_serialize")]
     pub weight: Option<BigDecimal>,
+    #[serde(with = "option_bigdecimal_serialize")]
     pub height: Option<BigDecimal>,
     pub symptoms: Option<String>,
     pub notes: Option<String>,
+    #[serde(with = "option_bigdecimal_serialize")]
     pub charges: Option<BigDecimal>,
-    pub created_at: Option<DateTime<Utc>>
+    pub created_at: Option<DateTime<Utc>>,
 }
-

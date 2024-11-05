@@ -1,20 +1,28 @@
+use crate::impls::serde_impls::{option_bigdecimal_serialize, option_naive_date_time_serialize};
 use crate::models::DieselResult;
-use chrono::{DateTime, Utc};
+use crate::schema::doctor_consultations;
+use bigdecimal::BigDecimal;
+use chrono::NaiveDateTime;
 use diesel::prelude::*;
+use serde::Serialize;
 
-#[derive(Debug, Clone, Queryable, Identifiable)]
+#[derive(Debug, Clone, Queryable, Identifiable, Serialize)]
 #[diesel(table_name = doctor_consultations)]
 #[diesel(primary_key(consultation_id))]
 pub struct DoctorConsultation {
     pub consultation_id: i32,
     pub visit_id: Option<i32>,
     pub doctor_id: Option<i32>,
-    pub consultation_time: Option<DateTime<Utc>>,
+    #[serde(with = "option_naive_date_time_serialize")]
+    pub consultation_time: Option<NaiveDateTime>,
     pub diagnosis: Option<String>,
     pub notes: Option<String>,
+    #[serde(with = "option_bigdecimal_serialize")]
     pub charges: Option<BigDecimal>,
     pub discount_percentage: Option<i32>,
     pub discount_locked: Option<bool>,
-    pub created_at: Option<DateTime<Utc>>,
-    pub updated_at: Option<DateTime<Utc>>,
+    #[serde(with = "option_naive_date_time_serialize")]
+    pub created_at: Option<NaiveDateTime>,
+    #[serde(with = "option_naive_date_time_serialize")]
+    pub updated_at: Option<NaiveDateTime>,
 }
