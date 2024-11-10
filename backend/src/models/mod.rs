@@ -12,4 +12,16 @@ pub mod doctor_consultation;
 pub mod administered_medication; 
 
 /// Generic diesel result, where Error variant is error coming from diesel
-type DieselResult<T> = Result<T, diesel::result::Error>;
+pub type QueryResult<T> = Result<T, diesel::result::Error>;
+
+/// The Pagination struct: Will be used to pagination for data
+pub struct Pagination {
+    pub page: i64, 
+    pub items_per_page: i64
+}
+
+impl Pagination {
+    pub fn offset(&self) -> i64 {
+        (self.page - 1) * self.items_per_page
+    }
+}

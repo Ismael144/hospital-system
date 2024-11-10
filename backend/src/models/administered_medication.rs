@@ -1,10 +1,10 @@
-use crate::models::DieselResult;
+use crate::models::QueryResult;
 use crate::schema::administered_medications;
 use bigdecimal::BigDecimal;
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
 
-#[derive(Debug, Clone, Queryable, Identifiable)]
+#[derive(Debug, Clone, Queryable, Identifiable, Selectable)]
 #[diesel(table_name = administered_medications)]
 #[diesel(primary_key(admin_id))]
 pub struct AdministeredMedication {

@@ -1,12 +1,12 @@
 use crate::impls::serde_impls::{bigdecimal_serialize, option_naive_date_time_serialize};
-use crate::models::DieselResult;
+use crate::models::QueryResult;
 use crate::schema::medications;
 use bigdecimal::BigDecimal;
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use serde::Serialize;
 
-#[derive(Debug, Clone, Queryable, Identifiable, Serialize)]
+#[derive(Debug, Clone, Queryable, Identifiable, Selectable, Serialize)]
 #[diesel(table_name = medications)]
 #[diesel(primary_key(medication_id))]
 pub struct Medication {

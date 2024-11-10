@@ -1,9 +1,11 @@
+mod auth;
 mod config;
 mod db;
 mod error_archive;
 mod extractors;
 mod handlers;
 mod impls;
+mod middleware;
 mod models;
 mod schema;
 
@@ -24,9 +26,9 @@ async fn main() -> std::io::Result<()> {
 
         App::new()
             .app_data(db_service_app_data.clone())
+            // .wrap(cors)
             .wrap(TracingLogger::default())
-            .wrap(cors)
-        // .service()
+            .configure(handlers::base_handler_service_config)
     })
     .bind("0.0.0.0:8000")?
     .run()

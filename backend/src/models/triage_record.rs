@@ -1,5 +1,5 @@
 use crate::impls::serde_impls::option_bigdecimal_serialize;
-use crate::models::DieselResult;
+use crate::models::QueryResult;
 use crate::models::{user::User, visit::Visit};
 use crate::schema::triage_records;
 use bigdecimal::BigDecimal;
@@ -7,7 +7,7 @@ use chrono::{DateTime, Utc};
 use diesel::prelude::*;
 use serde::Serialize;
 
-#[derive(Debug, Clone, Queryable, Identifiable, Serialize)]
+#[derive(Debug, Clone, Queryable, Identifiable, Selectable, Serialize)]
 #[diesel(table_name = triage_records)]
 #[diesel(primary_key(triage_id))]
 #[diesel(belongs_to(User, foreign_key = nurse_id), belongs_to(Visit))]

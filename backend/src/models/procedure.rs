@@ -1,6 +1,6 @@
 use crate::impls::serde_impls::{option_bigdecimal_serialize, option_naive_date_time_serialize};
 use crate::models::user::User;
-use crate::models::DieselResult;
+use crate::models::QueryResult;
 use crate::schema::procedures;
 use bigdecimal::BigDecimal;
 use chrono::NaiveDateTime;
@@ -19,7 +19,7 @@ pub enum ProcedureType {
     Other,
 }
 
-#[derive(Debug, Clone, Queryable, Identifiable, Serialize)]
+#[derive(Debug, Clone, Queryable, Identifiable, Selectable, Serialize)]
 #[diesel(table_name = procedures, primary_key(procedure_id), check_for_backend(diesel::pg::Pg))]
 #[diesel(belongs_to(Visit), belongs_to(User, foreign_key = doctor_id))]
 pub struct Procedure {

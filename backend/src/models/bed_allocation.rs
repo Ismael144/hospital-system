@@ -1,4 +1,4 @@
-use crate::models::DieselResult;
+use crate::models::QueryResult;
 use crate::models::{bed::Bed, user::User};
 use crate::schema::bed_allocations;
 use bigdecimal::BigDecimal;
@@ -6,7 +6,7 @@ use chrono::{DateTime, Utc};
 use diesel::prelude::*;
 
 /// Bed Allocation model, model responsible for allocating bed to patient
-#[derive(Debug, Clone, Queryable, Identifiable, Associations)]
+#[derive(Debug, Clone, Queryable, Identifiable, Associations, Selectable)]
 #[diesel(table_name = bed_allocations, check_for_backend(diesel::pg::Pg))]
 #[diesel(primary_key(allocation_id))]
 #[diesel(belongs_to(Bed), belongs_to(User, foreign_key = nurse_id))]

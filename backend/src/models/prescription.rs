@@ -1,10 +1,10 @@
-use crate::models::DieselResult;
+use crate::models::QueryResult;
 use crate::schema::prescriptions;
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
 use serde::Serialize;
 
-#[derive(Debug, Clone, Queryable, Identifiable, Serialize)]
+#[derive(Debug, Clone, Queryable, Identifiable, Selectable, Serialize)]
 #[diesel(table_name = prescriptions)]
 #[diesel(primary_key(prescription_id))]
 pub struct Prescription {
