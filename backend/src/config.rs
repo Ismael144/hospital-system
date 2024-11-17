@@ -1,13 +1,19 @@
 use actix_cors::Cors;
 use actix_web::http;
-use tracing_actix_web::TracingLogger;
-use tracing_subscriber::EnvFilter;
+use tracing_subscriber::fmt;
 
 /// Configuration of tracing for logging
 pub fn init_tracing() {
+    // Initialize the tracing subscriber
     tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::from_default_env())
-        .init()
+        .with_target(true)
+        .with_thread_ids(true)
+        .with_line_number(true)
+        .with_file(true)
+        .with_ansi(true)
+        .init();
+
+    tracing::info!("Logging initialized!");
 }
 
 /// CORS(Cross Origin Resource Sharing) Configuration

@@ -1,4 +1,4 @@
-use actix_web::{error::JsonPayloadError, http::StatusCode, HttpResponse, ResponseError};
+use actix_web::{error::JsonPayloadError, HttpResponse, ResponseError};
 use diesel::result::Error as DieselError;
 use serde::Serialize;
 use serde_json::json;
@@ -20,11 +20,16 @@ pub enum ErrorArchive {
     SerdeValidationError(String),
     #[error("Database error: {0}")]
     DatabaseError(String),
-    // For user authentication 
+    // Serde Error
+    #[error("Json Payload Error: {0}")]
+    JsonPayloadError(String),
+    // For user authentication
     #[error("Invalid credentials")]
-    InvalidCredentials, 
+    InvalidCredentials,
     #[error("Invalid token")]
-    InvalidToken, 
+    InvalidToken,
+    #[error("{0}")]
+    AlreadyExists(String),
 }
 
 #[derive(Debug, Serialize)]
@@ -37,6 +42,12 @@ impl ErrorResponse {
         Self {
             message: error.to_string(),
         }
+    }
+}
+
+impl From<JsonPayloadError> for ErrorArchive {
+    fn from(error: JsonPayloadError) -> ErrorArchive {
+        ErrorArchive::JsonPayloadError(error.to_string())
     }
 }
 
@@ -62,13 +73,19 @@ impl ResponseError for ErrorArchive {
             ErrorArchive::NotFound => HttpResponse::NotFound().json(ErrorResponse::new(self)),
             ErrorArchive::Unauthorized(_) => {
                 HttpResponse::Unauthorized().json(ErrorResponse::new(self))
-            }, 
+            }
+            ErrorArchive::JsonPayloadError(_) => {
+                HttpResponse::BadRequest().json(ErrorResponse::new(self))
+            }
             ErrorArchive::InvalidCredentials => {
                 HttpResponse::Unauthorized().json(ErrorResponse::new(self))
-            }, 
+            }
             ErrorArchive::InvalidToken => {
                 HttpResponse::Unauthorized().json(ErrorResponse::new(self))
-            }, 
+            }
+            ErrorArchive::AlreadyExists(_) => {
+                HttpResponse::BadRequest().json(ErrorResponse::new(self))
+            } 
             // Mapping a serde deserialization error to BadRequest
             ErrorArchive::SerdeValidationError(message) => HttpResponse::BadRequest().json(json!({
                 "error": "Validation error",
@@ -76,7 +93,7 @@ impl ResponseError for ErrorArchive {
             })),
             ErrorArchive::DatabaseError(_) => {
                 HttpResponse::InternalServerError().json(ErrorResponse::new(self))
-            },
+            }
         }
     }
 }

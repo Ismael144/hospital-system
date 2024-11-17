@@ -54,7 +54,7 @@ impl Visit {
     }
 
     /// Listing of paginated visits
-    pub async fn select_all(
+    pub async fn select_paginated(
         db_conn: &mut PgConnection,
         pagination: Pagination,
     ) -> QueryResult<Vec<Visit>> {

@@ -1,18 +1,14 @@
 use crate::error_archive::ErrorArchive;
+use crate::models::user::NewUser;
 use crate::models::user::{User, UserRole};
-use actix_web::{
-    dev::{ServiceRequest, ServiceResponse},
-    http::header::{self, HeaderValue},
-    web, Error, HttpMessage, HttpResponse,
-};
 use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
 };
 use chrono::{Duration, Utc};
+use diesel::prelude::PgConnection;
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData, Validation};
 use serde::{Deserialize, Serialize};
-use std::future::{ready, Ready};
 
 const JWT_SECRET: &[u8] = b"this-is-a-simple-jwt-secret";
 const TOKEN_EXPIRATION_HOURS: i64 = 24;
@@ -73,8 +69,12 @@ impl AuthService {
             iat: now.timestamp(),
         };
 
-        let token = encode(&Header::default(), &claims, &EncodingKey::from_secret(JWT_SECRET))
-            .map_err(|_| ErrorArchive::InternalServerError)?;
+        let token = encode(
+            &Header::default(),
+            &claims,
+            &EncodingKey::from_secret(JWT_SECRET),
+        )
+        .map_err(|_| ErrorArchive::InternalServerError)?;
 
         Ok(TokenResponse {
             token,
@@ -91,5 +91,12 @@ impl AuthService {
             &Validation::default(),
         )
         .map_err(|_| ErrorArchive::InternalServerError)
+    }
+
+    pub fn signup_user(
+        db_conn: &mut PgConnection,
+        new_user: NewUser,
+    ) -> Result<String, ErrorArchive> {
+        Ok(String::from("some string"))
     }
 }

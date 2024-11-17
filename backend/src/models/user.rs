@@ -1,4 +1,4 @@
-use crate::models::QueryResult;
+use crate::models::{QueryResult, Pagination};
 use crate::schema::users;
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
@@ -37,17 +37,17 @@ pub struct User {
 }
 
 /// This struct will be used for inserting users
-#[derive(Insertable, AsChangeset, Debug, Deserialize, Validate)]
+#[derive(Insertable, AsChangeset, Debug, Serialize, Deserialize, Validate)]
 #[diesel(table_name = users)]
-pub struct NewUser<'a> {
+pub struct NewUser {
     #[validate(length(min = 4, message = "Username should be atleast 4 characters"))]
-    pub username: &'a str,
+    pub username: String,
     #[validate(email(message = "Please provide a valid email address"))]
-    pub email: &'a str,
-    pub password_hash: &'a str,
-    pub phone: Option<&'a str>,
+    pub email: String,
+    pub password_hash: String,
+    pub phone: Option<String>,
     #[validate(length(min = 5, message = "Full name should be atleast 5 characters"))]
-    pub full_name: &'a str,
+    pub full_name: String,
     pub is_active: Option<bool>,
 }
 
@@ -55,7 +55,7 @@ pub struct NewUser<'a> {
 impl User {
     /// Insert new user into database
     /// Takes in a new user instance
-    pub async fn new(connection: &mut PgConnection, new_user: NewUser<'_>) -> QueryResult<User> {
+    pub async fn new(connection: &mut PgConnection, new_user: NewUser) -> QueryResult<User> {
         diesel::insert_into(users::table)
             .values(new_user)
             .returning(User::as_returning())
@@ -65,6 +65,14 @@ impl User {
     /// This method will fetch all users from the database
     pub async fn select_all(connection: &mut PgConnection) -> QueryResult<Vec<User>> {
         users::table.load(connection)
+    }
+
+    /// The paginated data for users model, it takes in the Pagination struct
+    pub async fn select_paginated(connection: &mut PgConnection, pagination: Pagination) -> QueryResult<Vec<User>> {
+        users::table
+        .limit(pagination.items_per_page)
+        .offset(pagination.offset())
+        .load::<User>(connection)
     }
 
     /// Getting single user by id
@@ -79,7 +87,7 @@ impl User {
     pub async fn update_user_by_id(
         connection: &mut PgConnection,
         user_id: i32,
-        update_user: NewUser<'_>,
+        update_user: NewUser,
     ) -> QueryResult<User> {
         diesel::update(users::table.filter(users::dsl::user_id.eq(user_id)))
             .set(update_user)
@@ -95,5 +103,10 @@ impl User {
         diesel::delete(users::table.filter(users::dsl::user_id.eq(user_id)))
             .returning(User::as_returning())
             .get_result(connection)
+    }
+
+    /// Creates user into the database
+    pub async fn create_user(db_conn: &mut PgConnection, new_user: NewUser) -> QueryResult<()> {
+        Ok(())
     }
 }

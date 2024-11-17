@@ -2,12 +2,15 @@ use crate::db::connection::DBService;
 use crate::error_archive::ErrorArchive;
 use crate::error_archive::*;
 use crate::handlers::HandlerResult;
-use crate::models::user::{NewUser, User, UserRole};
+use crate::middleware::auth::AuthMiddleware;
+use crate::models::{
+    user::{NewUser, User, UserRole},
+    Pagination,
+};
 use actix_web::{delete, patch, put};
 use actix_web::{get, http::header::ContentType, post, Responder};
 use actix_web::{web, HttpRequest, HttpResponse};
 use serde_json::json;
-use crate::middleware::auth::AuthMiddleware; 
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -72,14 +75,34 @@ pub async fn delete_all_users(
     Ok(HttpResponse::Ok().json(deleted_user))
 }
 
-// #[post("")]
-// pub async fn create_user(
-//     db_service: web::Data<DBService>,
-//     new_user: web::Json<NewUser>,
-// ) -> HandlerResult {
-//     let create_user = new_user.into_inner();
-//     let db_conn = &mut db_service.pool.get().map_err(|e| ErrorArchive::DatabaseError(e.to_string()))?;
+pub async fn users_paginated(
+    db_conn: web::Data<DBService>,
+    pagination_path: web::Query<Option<Pagination>>,
+) -> HandlerResult {
+    let db_conn = &mut db_conn
+        .pool
+        .get()
+        .map_err(|e| ErrorArchive::DatabaseError(e.to_string()))?;
+    let pagination_option = pagination_path.into_inner();
 
-//     // todo: Hash password before storing new user
-//     let newly_created_user = User::create_user(db_conn, create_user);
-// }
+    match pagination_option {
+        Some(pagination) => {
+            Ok(HttpResponse::Ok().json(User::select_paginated(db_conn, pagination).await?))
+        }
+        None => Ok(HttpResponse::Ok().json(User::select_all(db_conn).await?)),
+    }
+}
+
+#[post("")]
+pub async fn create_user(
+    db_service: web::Data<DBService>,
+    new_user: web::Json<NewUser>,
+) -> HandlerResult {
+    let create_user = new_user.into_inner();
+    let db_conn = &mut db_service.pool.get().map_err(|e| ErrorArchive::DatabaseError(e.to_string()))?;
+
+    // todo: Hash password before storing new user
+    let newly_created_user = User::create_user(db_conn, create_user).await?;
+
+    Ok(HttpResponse::Ok().body("This is a simple body"))
+}
