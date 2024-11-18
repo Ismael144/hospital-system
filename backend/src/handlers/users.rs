@@ -64,7 +64,7 @@ pub async fn users_paginated(
         .pool
         .get()
         .map_err(|e| ErrorArchive::DatabaseError(e.to_string()))?;
-    let pagination_option = pagination_path.into_inner();
+    let pagination = pagination_path.into_inner();
 
     Ok(HttpResponse::Ok().json(User::select_paginated(db_conn, pagination).await?))
 }
