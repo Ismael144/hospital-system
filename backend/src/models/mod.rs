@@ -11,10 +11,13 @@ pub mod invoice;
 pub mod doctor_consultation; 
 pub mod administered_medication; 
 
+use serde::{Serialize, Deserialize};
+
 /// Generic diesel result, where Error variant is error coming from diesel
 pub type QueryResult<T> = Result<T, diesel::result::Error>;
 
 /// The Pagination struct: Will be used to pagination for data
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Pagination {
     pub page: i64, 
     pub items_per_page: i64

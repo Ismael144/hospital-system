@@ -1,13 +1,13 @@
+use crate::error_archive::*;
 use crate::models::user::UserRole;
 use crate::{
     auth::auth::{AuthService, LoginCredentials},
     db::connection::DBService,
     error_archive::ErrorArchive,
-    models::user::{User, NewUser},
-    handlers::HandlerResult,
     extractors::bearer_token,
+    handlers::HandlerResult,
+    models::user::{NewUser, User},
 };
-use crate::error_archive::*;
 use actix_web::{
     error::JsonPayloadError,
     get, post,
@@ -18,11 +18,7 @@ use diesel::prelude::*;
 use serde_json::json;
 
 pub fn config(cfg: &mut ServiceConfig) {
-    cfg.service(
-        web::scope("auth")
-        .service(login)
-        .service(signup)
-    );
+    cfg.service(web::scope("auth").service(login).service(signup));
 }
 
 #[post("login")]
@@ -55,9 +51,14 @@ pub async fn login(
 }
 
 #[post("signup")]
-pub async fn signup(db_conn: web::Data<DBService>, user: Result<web::Json<NewUser>, actix_web::Error>) -> HandlerResult {
-    let user = user.map_err(|e| ErrorArchive::JsonPayloadError(e.to_string()))?.into_inner();
-    
+pub async fn signup(
+    db_conn: web::Data<DBService>,
+    user: Result<web::Json<NewUser>, actix_web::Error>,
+) -> HandlerResult {
+    let user = user
+        .map_err(|e| ErrorArchive::JsonPayloadError(e.to_string()))?
+        .into_inner();
+
     Ok(HttpResponse::Ok().json(json!({"message": "some message"})))
 }
 

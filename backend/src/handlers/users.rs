@@ -1,22 +1,21 @@
 use crate::db::connection::DBService;
 use crate::error_archive::ErrorArchive;
-use crate::error_archive::*;
 use crate::handlers::HandlerResult;
 use crate::middleware::auth::AuthMiddleware;
 use crate::models::{
     user::{NewUser, User, UserRole},
     Pagination,
 };
-use actix_web::{delete, patch, put};
-use actix_web::{get, http::header::ContentType, post, Responder};
-use actix_web::{web, HttpRequest, HttpResponse};
+use actix_web::{delete, get, patch, post, put};
+use actix_web::{web, HttpResponse};
 use serde_json::json;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("users")
+            // .wrap(AuthMiddleware::new(vec![UserRole::Admin]))
             .service(get_all_users)
-            .wrap(AuthMiddleware::new(vec![UserRole::Admin]))
+            .service(users_paginated)
             .service(select_single_user)
             .service(delete_all_users),
     );
@@ -56,6 +55,37 @@ pub async fn select_single_user(
     Ok(HttpResponse::Ok().json(user))
 }
 
+#[get("paginated")]
+pub async fn users_paginated(
+    db_conn: web::Data<DBService>,
+    pagination_path: web::Query<Pagination>,
+) -> HandlerResult {
+    let db_conn = &mut db_conn
+        .pool
+        .get()
+        .map_err(|e| ErrorArchive::DatabaseError(e.to_string()))?;
+    let pagination_option = pagination_path.into_inner();
+
+    Ok(HttpResponse::Ok().json(User::select_paginated(db_conn, pagination).await?))
+}
+
+#[post("")]
+pub async fn create_user(
+    db_service: web::Data<DBService>,
+    new_user: web::Json<NewUser>,
+) -> HandlerResult {
+    let create_user = new_user.into_inner();
+    let db_conn = &mut db_service
+        .pool
+        .get()
+        .map_err(|e| ErrorArchive::DatabaseError(e.to_string()))?;
+
+    // todo: Hash password before storing new user
+    let newly_created_user = User::create_user(db_conn, create_user).await?;
+
+    Ok(HttpResponse::Ok().json(newly_created_user))
+}
+
 #[delete("{user_id}")]
 pub async fn delete_all_users(
     db_service: web::Data<DBService>,
@@ -73,36 +103,4 @@ pub async fn delete_all_users(
         .map_err(|_| ErrorArchive::InternalServerError);
 
     Ok(HttpResponse::Ok().json(deleted_user))
-}
-
-pub async fn users_paginated(
-    db_conn: web::Data<DBService>,
-    pagination_path: web::Query<Option<Pagination>>,
-) -> HandlerResult {
-    let db_conn = &mut db_conn
-        .pool
-        .get()
-        .map_err(|e| ErrorArchive::DatabaseError(e.to_string()))?;
-    let pagination_option = pagination_path.into_inner();
-
-    match pagination_option {
-        Some(pagination) => {
-            Ok(HttpResponse::Ok().json(User::select_paginated(db_conn, pagination).await?))
-        }
-        None => Ok(HttpResponse::Ok().json(User::select_all(db_conn).await?)),
-    }
-}
-
-#[post("")]
-pub async fn create_user(
-    db_service: web::Data<DBService>,
-    new_user: web::Json<NewUser>,
-) -> HandlerResult {
-    let create_user = new_user.into_inner();
-    let db_conn = &mut db_service.pool.get().map_err(|e| ErrorArchive::DatabaseError(e.to_string()))?;
-
-    // todo: Hash password before storing new user
-    let newly_created_user = User::create_user(db_conn, create_user).await?;
-
-    Ok(HttpResponse::Ok().body("This is a simple body"))
 }

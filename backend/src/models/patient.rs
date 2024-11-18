@@ -77,10 +77,7 @@ impl Patient {
     }
 
     /// Delete a given patient and returning the deleted patient
-    pub async fn delete_by_id(
-        db_conn: &mut PgConnection,
-        patient_id: i32,
-    ) -> QueryResult<Patient> {
+    pub async fn delete_by_id(db_conn: &mut PgConnection, patient_id: i32) -> QueryResult<Patient> {
         diesel::delete(patients::table.filter(patients::dsl::patient_id.eq(patient_id)))
             .returning(Patient::as_returning())
             .get_result(db_conn)
@@ -99,7 +96,7 @@ impl Patient {
             .get_result(db_conn)
             .optional()
     }
-    
+
     async fn check_patient_existence_by_nin(
         db_conn: &mut PgConnection,
         patient_nin: &'_ str,

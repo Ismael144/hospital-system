@@ -1,10 +1,12 @@
-use crate::models::{QueryResult, Pagination};
+use crate::error_archive::ErrorArchive;
+use crate::error_archive::*;
+use crate::models::{Pagination, QueryResult};
 use crate::schema::users;
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
 use diesel_derive_enum;
 use serde::{Deserialize, Serialize};
-use validator::Validate;
+use validator::{Validate, ValidationErrors};
 
 /// These are the roles of different kinds of users
 #[derive(diesel_derive_enum::DbEnum, Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
@@ -68,11 +70,14 @@ impl User {
     }
 
     /// The paginated data for users model, it takes in the Pagination struct
-    pub async fn select_paginated(connection: &mut PgConnection, pagination: Pagination) -> QueryResult<Vec<User>> {
+    pub async fn select_paginated(
+        connection: &mut PgConnection,
+        pagination: Pagination,
+    ) -> QueryResult<Vec<User>> {
         users::table
-        .limit(pagination.items_per_page)
-        .offset(pagination.offset())
-        .load::<User>(connection)
+            .limit(pagination.items_per_page)
+            .offset(pagination.offset())
+            .load::<User>(connection)
     }
 
     /// Getting single user by id
@@ -96,17 +101,20 @@ impl User {
     }
 
     /// Deleting the user, it returns the deleted user back
-    pub async fn delete_by_id(
-        connection: &mut PgConnection,
-        user_id: i32,
-    ) -> QueryResult<User> {
+    pub async fn delete_by_id(connection: &mut PgConnection, user_id: i32) -> QueryResult<User> {
         diesel::delete(users::table.filter(users::dsl::user_id.eq(user_id)))
             .returning(User::as_returning())
             .get_result(connection)
     }
 
     /// Creates user into the database
-    pub async fn create_user(db_conn: &mut PgConnection, new_user: NewUser) -> QueryResult<()> {
-        Ok(())
+    pub async fn create_user(db_conn: &mut PgConnection, new_user: NewUser) -> QueryResult<User> {
+        // We'll first validate the user
+        let created_user = diesel::insert_into(users::table)
+            .values(new_user)
+            .returning(User::as_returning())
+            .get_result::<User>(db_conn);
+
+        created_user
     }
 }

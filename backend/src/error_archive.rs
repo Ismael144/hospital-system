@@ -3,9 +3,10 @@ use diesel::result::Error as DieselError;
 use serde::Serialize;
 use serde_json::json;
 use thiserror::Error;
+use validator::ValidationErrors;
 
 /// A collection of errors to be used in the project
-#[derive(Error, Debug, Serialize)]
+#[derive(Error, Debug, Serialize, Clone)]
 pub enum ErrorArchive {
     #[error("An internal server error occured...")]
     InternalServerError,
@@ -29,7 +30,7 @@ pub enum ErrorArchive {
     #[error("Invalid token")]
     InvalidToken,
     #[error("{0}")]
-    AlreadyExists(String),
+    ValidationError(String),
 }
 
 #[derive(Debug, Serialize)]
@@ -60,6 +61,12 @@ impl From<DieselError> for ErrorArchive {
     }
 }
 
+impl From<ValidationErrors> for ErrorArchive {
+    fn from(error: ValidationErrors) -> ErrorArchive {
+        ErrorArchive::ValidationError(serde_json::to_string(&error).unwrap())
+    }
+}
+
 /// Mapping errors to other error types e.g. for actix web
 impl ResponseError for ErrorArchive {
     fn error_response(&self) -> HttpResponse {
@@ -83,9 +90,9 @@ impl ResponseError for ErrorArchive {
             ErrorArchive::InvalidToken => {
                 HttpResponse::Unauthorized().json(ErrorResponse::new(self))
             }
-            ErrorArchive::AlreadyExists(_) => {
+            ErrorArchive::ValidationError(_) => {
                 HttpResponse::BadRequest().json(ErrorResponse::new(self))
-            } 
+            }
             // Mapping a serde deserialization error to BadRequest
             ErrorArchive::SerdeValidationError(message) => HttpResponse::BadRequest().json(json!({
                 "error": "Validation error",
