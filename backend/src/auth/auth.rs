@@ -9,6 +9,7 @@ use chrono::{Duration, Utc};
 use diesel::prelude::PgConnection;
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData, Validation};
 use serde::{Deserialize, Serialize};
+use std::env;
 
 const JWT_SECRET: &[u8] = b"this-is-a-simple-jwt-secret";
 const TOKEN_EXPIRATION_HOURS: i64 = 24;
@@ -29,6 +30,7 @@ pub struct LoginCredentials {
     pub password: String,
 }
 
+// Token response
 #[derive(Serialize, Deserialize)]
 pub struct TokenResponse {
     token: String,
@@ -59,8 +61,13 @@ impl AuthService {
 
     /// Generate token for authenticated user
     pub fn generate_token(user: &User) -> Result<TokenResponse, ErrorArchive> {
+        dotenvy::dotenv().ok(); 
+
+        let jwt_secret = env::var("JWT_SECRET").expect("A JWT Secret is expected..."); 
+        let token_expiration_hours = env::var("TOKEN_EXPIRATION_HOURS").expect("Token expiration hours needed...").parse::<i64>().unwrap();
+
         let now = Utc::now();
-        let exp = now + Duration::hours(TOKEN_EXPIRATION_HOURS);
+        let exp = now + Duration::hours(token_expiration_hours);
 
         let claims = Claims {
             sub: user.user_id,
@@ -72,28 +79,32 @@ impl AuthService {
         let token = encode(
             &Header::default(),
             &claims,
-            &EncodingKey::from_secret(JWT_SECRET),
+            &EncodingKey::from_secret(jwt_secret.as_bytes()),
         )
         .map_err(|_| ErrorArchive::InternalServerError)?;
 
         Ok(TokenResponse {
             token,
             token_type: "Bearer".to_string(),
-            expires_in: TOKEN_EXPIRATION_HOURS * 3600,
+            expires_in: token_expiration_hours * 3600,
         })
     }
 
     /// Checking whether the token hasn't expired.
     pub fn validate_token(token: &str) -> Result<TokenData<Claims>, ErrorArchive> {
+        dotenvy::dotenv().ok(); 
+
+        let jwt_secret = env::var("JWT_SECRET").expect("A JWT Secret is expected..."); 
+
         decode::<Claims>(
             token,
-            &DecodingKey::from_secret(JWT_SECRET),
+            &DecodingKey::from_secret(jwt_secret.as_bytes()),
             &Validation::default(),
         )
         .map_err(|_| ErrorArchive::InternalServerError)
     }
 
-    pub fn signup_user(
+    pub fn signup(
         db_conn: &mut PgConnection,
         new_user: NewUser,
     ) -> Result<String, ErrorArchive> {

@@ -21,6 +21,7 @@ pub enum PaymentStatus {
 #[diesel(table_name = invoices)]
 #[diesel(primary_key(invoice_id), belongs_to(User, foreign_key = created_by))]
 pub struct Invoice {
+    #[serde(rename = "id")]
     pub invoice_id: i32,
     pub visit_id: Option<i32>,
     #[serde(with = "option_naive_date_time_serialize")]
@@ -38,6 +39,7 @@ pub struct Invoice {
 #[diesel(table_name = invoices)]
 pub struct NewInvoice<'a> {
     pub visit_id: i32,
+    #[serde(with = "option_naive_date_time_serialize")]
     pub generated_at: Option<NaiveDateTime>,
     #[serde(with = "bigdecimal_serialize")]
     pub total_amount: BigDecimal,

@@ -164,6 +164,7 @@ diesel::table! {
         description -> Nullable<Text>,
         notes -> Nullable<Text>,
         charges -> Nullable<Numeric>,
+        is_modified -> Bool,
         created_at -> Nullable<Timestamptz>,
     }
 }
@@ -205,6 +206,8 @@ diesel::table! {
         email -> Varchar,
         #[max_length = 20]
         phone -> Nullable<Varchar>,
+        #[max_length = 255]
+        avatar -> Nullable<Varchar>,
         is_active -> Nullable<Bool>,
         created_at -> Nullable<Timestamptz>,
         updated_at -> Nullable<Timestamptz>,
@@ -254,7 +257,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     doctor_consultations,
     invoices,
     medications,
-
     patients,
     prescriptions,
     procedures,

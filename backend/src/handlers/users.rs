@@ -1,14 +1,28 @@
+use actix_web::{delete, get, post};
+use actix_web::{web, HttpResponse};
+use serde_json::json;
+use actix_multipart::form::{json::Json as MpJson, tempfile::TempFile, MultipartForm}; 
 use crate::db::connection::DBService;
 use crate::error_archive::ErrorArchive;
 use crate::handlers::HandlerResult;
-use crate::middleware::auth::AuthMiddleware;
 use crate::models::{
-    user::{NewUser, User, UserRole},
+    user::{NewUser, User},
     Pagination,
 };
-use actix_web::{delete, get, patch, post, put};
-use actix_web::{web, HttpResponse};
-use serde_json::json;
+use serde::{Serialize, Deserialize};
+
+#[derive(Serialize, Deserialize, Debug)]
+// Handling user avatar upload
+struct Metadata {
+    name: String
+}
+
+#[derive(MultipartForm, Debug)]
+struct AvatarUploadForm {
+    #[multipart(limit = "100MB")]
+    file: TempFile, 
+    metadata: MpJson<Metadata>
+}
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -64,21 +78,25 @@ pub async fn users_paginated(
         .pool
         .get()
         .map_err(|e| ErrorArchive::DatabaseError(e.to_string()))?;
+    
     let pagination = pagination_path.into_inner();
 
     Ok(HttpResponse::Ok().json(User::select_paginated(db_conn, pagination).await?))
 }
 
 #[post("")]
-pub async fn create_user(
+pub async fn signup_user(
     db_service: web::Data<DBService>,
     new_user: web::Json<NewUser>,
+    MultipartForm(form): MultipartForm<AvatarUploadForm>
 ) -> HandlerResult {
     let create_user = new_user.into_inner();
     let db_conn = &mut db_service
         .pool
         .get()
         .map_err(|e| ErrorArchive::DatabaseError(e.to_string()))?;
+
+    println!("{form:#?}");
 
     // todo: Hash password before storing new user
     let newly_created_user = User::create_user(db_conn, create_user).await?;

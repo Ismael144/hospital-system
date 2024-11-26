@@ -1,5 +1,4 @@
 use crate::impls::serde_impls::{option_bigdecimal_serialize, option_naive_date_time_serialize};
-use crate::models::QueryResult;
 use crate::schema::doctor_consultations;
 use bigdecimal::BigDecimal;
 use chrono::NaiveDateTime;
@@ -10,6 +9,7 @@ use serde::Serialize;
 #[diesel(table_name = doctor_consultations)]
 #[diesel(primary_key(consultation_id))]
 pub struct DoctorConsultation {
+    #[serde(rename = "id")]
     pub consultation_id: i32,
     pub visit_id: Option<i32>,
     pub doctor_id: Option<i32>,

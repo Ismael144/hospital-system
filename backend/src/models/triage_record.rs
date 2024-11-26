@@ -1,6 +1,4 @@
 use crate::impls::serde_impls::option_bigdecimal_serialize;
-use crate::models::QueryResult;
-use crate::models::{user::User, visit::Visit};
 use crate::schema::triage_records;
 use bigdecimal::BigDecimal;
 use chrono::{DateTime, Utc};
@@ -12,6 +10,7 @@ use serde::Serialize;
 #[diesel(primary_key(triage_id))]
 #[diesel(belongs_to(User, foreign_key = nurse_id), belongs_to(Visit))]
 pub struct TriageRecord {
+    #[serde(rename = "id")]
     pub triage_id: i32,
     pub visit_id: Option<i32>,
     pub nurse_id: Option<i32>,

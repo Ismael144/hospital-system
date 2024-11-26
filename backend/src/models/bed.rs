@@ -8,6 +8,7 @@ use serde::Serialize;
 #[diesel(table_name = beds, check_for_backend(diesel::pg::Pg))]
 #[diesel(primary_key(bed_id))]
 pub struct Bed {
+    #[serde(rename = "id")]
     pub bed_id: i32,
     pub bed_number: String,
     pub ward: String,
@@ -42,6 +43,11 @@ impl Bed {
         beds::table.load::<Bed>(db_conn)
     }
 
+    pub async fn beds_paginated() -> QueryResult<Vec<Self>> {
+        // beds::table.select(
+        Ok(vec![])
+    }
+    
     pub async fn get_by_id(db_conn: &mut PgConnection, bed_id: i32) -> QueryResult<Option<Bed>> {
         beds::table.filter(crate::schema::beds::dsl::bed_id.eq(bed_id))
         .get_result(db_conn)

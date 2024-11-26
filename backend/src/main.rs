@@ -1,17 +1,17 @@
-mod auth;
-mod config;
-mod db;
-mod error_archive;
-mod extractors;
-mod handlers;
-mod impls;
-mod middleware;
-mod models;
-mod schema;
+pub mod auth;
+pub mod config;
+pub mod db;
+pub mod error_archive;
+pub mod extractors;
+pub mod handlers;
+pub mod impls;
+pub mod middleware;
+pub mod models;
+pub mod schema;
 
 use actix_web::{web, App, HttpServer};
 use tracing_actix_web::TracingLogger;
-use tracing::{info, warn, debug, error}; 
+use tracing::info; 
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {

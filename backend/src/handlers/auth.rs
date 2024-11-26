@@ -1,16 +1,12 @@
-use crate::error_archive::*;
-use crate::models::user::UserRole;
 use crate::{
     auth::auth::{AuthService, LoginCredentials},
     db::connection::DBService,
     error_archive::ErrorArchive,
-    extractors::bearer_token,
     handlers::HandlerResult,
     models::user::{NewUser, User},
 };
 use actix_web::{
-    error::JsonPayloadError,
-    get, post,
+    post,
     web::{self, ServiceConfig},
     HttpResponse,
 };
@@ -18,7 +14,9 @@ use diesel::prelude::*;
 use serde_json::json;
 
 pub fn config(cfg: &mut ServiceConfig) {
-    cfg.service(web::scope("auth").service(login).service(signup));
+    cfg.service(web::scope("auth")
+        .service(login)
+        .service(signup));
 }
 
 #[post("login")]
@@ -64,7 +62,7 @@ pub async fn signup(
 
 // #[get("profile")]
 // pub async fn profile(db_service: web::Data<DBService>, bearer_token: bearer_token::BearerToken) -> HandlerResult {
-//     let db_conn = &mut db_service.pool.get().map_err(|e| ErrorArchive::DatabaseError(e))?;
+//     let db_conn = &mut db_service.pool.get().map_err(|e| ErrorArchive::DatabaseError(e.to_string()))?;
 //     let auth_token = bearer_token.token.clone();
 
 //     // I just unwrap without checking whether token is valid, because its already checked by the AuthMiddlewareService
@@ -72,5 +70,5 @@ pub async fn signup(
 
 //     User::get_user_by_id(db_conn, token_data.claims.sub);
 
-//     Ok(HttpResponse::Ok().json("{}"))
+//     Ok(HttpResponse::Ok().json(token_data))
 // }

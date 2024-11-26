@@ -1,6 +1,5 @@
 use actix_cors::Cors;
 use actix_web::http;
-use tracing_subscriber::fmt;
 
 /// Configuration of tracing for logging
 pub fn init_tracing() {

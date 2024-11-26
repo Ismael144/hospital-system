@@ -1,4 +1,3 @@
-use crate::models::QueryResult;
 use crate::schema::prescriptions;
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
@@ -8,6 +7,7 @@ use serde::Serialize;
 #[diesel(table_name = prescriptions)]
 #[diesel(primary_key(prescription_id))]
 pub struct Prescription {
+    #[serde(rename = "id")]
     pub prescription_id: i32,
     pub consultation_id: Option<i32>,
     pub medication_id: Option<i32>,

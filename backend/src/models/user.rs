@@ -1,12 +1,12 @@
+use crate::auth::auth::AuthService;
 use crate::error_archive::ErrorArchive;
-use crate::error_archive::*;
 use crate::models::{Pagination, QueryResult};
 use crate::schema::users;
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
 use diesel_derive_enum;
 use serde::{Deserialize, Serialize};
-use validator::{Validate, ValidationErrors};
+use validator::Validate;
 
 /// These are the roles of different kinds of users
 #[derive(diesel_derive_enum::DbEnum, Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
@@ -25,6 +25,7 @@ pub enum UserRole {
 #[diesel(table_name = users, check_for_backend(diesel::pg::Pg))]
 #[diesel(primary_key(user_id))]
 pub struct User {
+    #[serde(rename = "id")]
     pub user_id: i32,
     pub username: String,
     pub password_hash: String,
@@ -33,13 +34,14 @@ pub struct User {
     pub full_name: String,
     pub email: String,
     pub phone: Option<String>,
+    pub avatar: Option<String>,
     pub is_active: Option<bool>,
     pub created_at: Option<DateTime<Utc>>,
     pub updated_at: Option<DateTime<Utc>>,
 }
 
 /// This struct will be used for inserting users
-#[derive(Insertable, AsChangeset, Debug, Serialize, Deserialize, Validate)]
+#[derive(Insertable, AsChangeset, Debug, Serialize, Deserialize, Validate, Clone)]
 #[diesel(table_name = users)]
 pub struct NewUser {
     #[validate(length(min = 4, message = "Username should be atleast 4 characters"))]
@@ -48,6 +50,7 @@ pub struct NewUser {
     pub email: String,
     pub password_hash: String,
     pub phone: Option<String>,
+    pub avatar: Option<String>,
     #[validate(length(min = 5, message = "Full name should be atleast 5 characters"))]
     pub full_name: String,
     pub is_active: Option<bool>,
@@ -110,6 +113,12 @@ impl User {
     /// Creates user into the database
     pub async fn create_user(db_conn: &mut PgConnection, new_user: NewUser) -> QueryResult<User> {
         // We'll first validate the user
+        let mut new_user = new_user.clone();
+
+        // Hashing the password first
+        new_user.password_hash = AuthService::hash_password(&new_user.password_hash)
+            .map_err(|_| ErrorArchive::InternalServerError).unwrap();
+
         let created_user = diesel::insert_into(users::table)
             .values(new_user)
             .returning(User::as_returning())

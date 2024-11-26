@@ -1,4 +1,3 @@
-use crate::models::QueryResult;
 use crate::models::{bed::Bed, user::User};
 use crate::schema::bed_allocations;
 use bigdecimal::BigDecimal;

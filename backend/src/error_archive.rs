@@ -1,12 +1,12 @@
 use actix_web::{error::JsonPayloadError, HttpResponse, ResponseError};
 use diesel::result::Error as DieselError;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use serde_json::json;
 use thiserror::Error;
 use validator::ValidationErrors;
 
 /// A collection of errors to be used in the project
-#[derive(Error, Debug, Serialize, Clone)]
+#[derive(Error, Debug, Serialize, Deserialize, Clone)]
 pub enum ErrorArchive {
     #[error("An internal server error occured...")]
     InternalServerError,

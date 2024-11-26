@@ -18,6 +18,7 @@ CREATE TABLE users (
     full_name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     phone VARCHAR(20),
+    avatar VARCHAR(255) NULL,
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -113,6 +114,7 @@ CREATE TABLE procedures (
     description TEXT,
     notes TEXT,
     charges DECIMAL(10,2) DEFAULT 0.00,
+    is_modified BOOLEAN NOT NULL DEFAULT false, 
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
