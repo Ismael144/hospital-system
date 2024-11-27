@@ -60,9 +60,18 @@ pub async fn signup(
         .map_err(|e| ErrorArchive::JsonPayloadError(e.to_string()))?
         .into_inner();
 
-    let created_user = AuthService::signup(db_conn, new_user).await.unwrap();
+    let user_creation_result = AuthService::signup(db_conn, new_user).await;
 
-    Ok(HttpResponse::Ok().json(created_user))
+    match user_creation_result {
+        Ok(created_user) => Ok(HttpResponse::Ok()
+            .json(json!({"status_code": 200, "success": true, "user": created_user}))),
+        Err(errors) => {
+            // Change status code
+
+            Ok(HttpResponse::BadRequest()
+                .json(json!({"status_code": 400, "success": false, "errors": errors })))
+        }
+    }
 }
 
 // #[get("profile")]

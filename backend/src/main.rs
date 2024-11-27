@@ -1,6 +1,5 @@
 pub mod auth;
 pub mod config;
-pub mod custom_validations;
 pub mod db;
 pub mod error_archive;
 pub mod extractors;
@@ -9,6 +8,7 @@ pub mod impls;
 pub mod middleware;
 pub mod models;
 pub mod schema;
+pub mod validations;
 
 use actix_web::{web, App, HttpServer};
 use tracing::info;

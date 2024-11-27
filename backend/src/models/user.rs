@@ -1,6 +1,6 @@
 use crate::auth::auth::AuthService;
-use crate::custom_validations::{
-    validate_unique_email, validate_unique_full_name, validate_unique_username,
+use crate::validations::user::{
+    validate_unique_email, validate_unique_full_name, validate_unique_username, validate_phone_number
 };
 use crate::error_archive::ErrorArchive;
 use crate::models::{Pagination, QueryResult};
@@ -59,6 +59,9 @@ pub struct NewUser {
     pub email: String,
     pub role: UserRole,
     pub password_hash: String,
+    #[validate(
+        custom(function = "validate_phone_number")
+    )]
     pub phone: Option<String>,
     pub avatar: Option<String>,
     #[validate(

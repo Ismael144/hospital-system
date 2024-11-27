@@ -1,9 +1,10 @@
 use crate::models::visit::Visit;
 use crate::models::QueryResult;
 use crate::schema::patients;
+use crate::validations::patient::validate_phone_number;
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, diesel_derive_enum::DbEnum, Serialize)]
@@ -37,9 +38,9 @@ pub struct Patient {
 #[derive(Insertable, AsChangeset, Validate)]
 #[diesel(table_name = patients)]
 pub struct NewPatient<'a> {
-    #[validate(length(min = 4))]
+    #[validate(length(min = 3))]
     pub name: &'a str,
-    #[validate(length(min = 10, max = 10))]
+    #[validate(length(min = 14, max = 14))]
     pub nin: Option<&'a str>,
     pub age: Option<i32>,
     pub gender: Option<&'a str>,
@@ -47,13 +48,13 @@ pub struct NewPatient<'a> {
     pub phone: Option<&'a str>,
     pub address: Option<&'a str>,
     pub emergency_contact: Option<&'a str>,
-    // #[validate(length(min = 1), custom(function = "validate_phone_number"))]
+    #[validate(custom(function = "validate_phone_number"))]
     pub emergency_phone: Option<&'a str>,
     pub registered_by: Option<i32>,
 }
 
 #[derive(Serialize, Debug)]
-struct PatientWithVisits {
+pub struct PatientWithVisits {
     #[serde(flatten)]
     patient: Patient,
     visits: Vec<Visit>,
@@ -128,7 +129,7 @@ impl Patient {
             .optional()
     }
 
-    /// This function will return a collection of patients with their corresponding visits 
+    /// This function will return a collection of patients with their corresponding visits
     pub async fn patients_visits(
         db_conn: &mut PgConnection,
     ) -> QueryResult<Vec<PatientWithVisits>> {

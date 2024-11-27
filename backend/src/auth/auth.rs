@@ -112,6 +112,26 @@ impl AuthService {
         db_conn: &mut PgConnection,
         new_user: NewUser,
     ) -> Result<User, HashMap<String, ErrorArchive>> {
-        Err(HashMap::new())
+        let mut error_hashmap: HashMap<String, ErrorArchive> = HashMap::new();
+
+        return match new_user.validate() {
+            Ok(_) => {
+                let created_user = User::create_user(db_conn, new_user).await.unwrap();
+
+                Ok(created_user)
+            }
+            Err(signup_errors) => {
+                for (field, errors) in signup_errors.field_errors() {
+                    if let Some(error_message) = errors.first().and_then(|e| e.message.clone()) {
+                        error_hashmap.insert(
+                            field.to_string(),
+                            ErrorArchive::ValidationError(error_message.to_string()),
+                        );
+                    }
+                }
+
+                Err(error_hashmap)
+            }
+        };
     }
 }
