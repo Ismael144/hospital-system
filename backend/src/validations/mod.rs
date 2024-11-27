@@ -1,1 +1,2 @@
-pub mod user_validations;
+pub mod user;
+pub mod patient;
