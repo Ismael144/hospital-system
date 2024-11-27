@@ -19,6 +19,7 @@ dotenvy = "0.15.7"
 futures = "0.3.31"
 futures-util = "0.3.31"
 jsonwebtoken = "9.3.0"
+phonelib = "0.1.2"
 r2d2 = "0.8.10"
 regex = "1.11.1"
 serde = { version = "1.0.214", features = ["derive"] }

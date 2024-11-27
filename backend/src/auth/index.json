@@ -1,0 +1,22 @@
+// On success
+{
+    "status": 200,
+    "user": {
+        "id": 1, 
+        "username": "some username blah blah"
+    } 
+}
+
+// On error 
+{
+    "status": 400, 
+    "errors": {
+        "username": [
+            "Invalid username", 
+            "short username"
+        ], 
+        "email": [
+            "Invalid email "
+        ]
+    }
+}

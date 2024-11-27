@@ -9,9 +9,10 @@ use chrono::{Duration, Utc};
 use diesel::prelude::PgConnection;
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData, Validation};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::env;
+use validator::{Validate, ValidationError};
 
-const JWT_SECRET: &[u8] = b"this-is-a-simple-jwt-secret";
 const TOKEN_EXPIRATION_HOURS: i64 = 24;
 
 // Claims struct for JWT implementation
@@ -61,10 +62,13 @@ impl AuthService {
 
     /// Generate token for authenticated user
     pub fn generate_token(user: &User) -> Result<TokenResponse, ErrorArchive> {
-        dotenvy::dotenv().ok(); 
+        dotenvy::dotenv().ok();
 
-        let jwt_secret = env::var("JWT_SECRET").expect("A JWT Secret is expected..."); 
-        let token_expiration_hours = env::var("TOKEN_EXPIRATION_HOURS").expect("Token expiration hours needed...").parse::<i64>().unwrap();
+        let jwt_secret = env::var("JWT_SECRET").expect("A JWT Secret is expected...");
+        let token_expiration_hours = env::var("TOKEN_EXPIRATION_HOURS")
+            .expect("Token expiration hours needed...")
+            .parse::<i64>()
+            .unwrap();
 
         let now = Utc::now();
         let exp = now + Duration::hours(token_expiration_hours);
@@ -92,9 +96,9 @@ impl AuthService {
 
     /// Checking whether the token hasn't expired.
     pub fn validate_token(token: &str) -> Result<TokenData<Claims>, ErrorArchive> {
-        dotenvy::dotenv().ok(); 
+        dotenvy::dotenv().ok();
 
-        let jwt_secret = env::var("JWT_SECRET").expect("A JWT Secret is expected..."); 
+        let jwt_secret = env::var("JWT_SECRET").expect("A JWT Secret is expected...");
 
         decode::<Claims>(
             token,
@@ -104,10 +108,10 @@ impl AuthService {
         .map_err(|_| ErrorArchive::InternalServerError)
     }
 
-    pub fn signup(
+    pub async fn signup(
         db_conn: &mut PgConnection,
         new_user: NewUser,
-    ) -> Result<String, ErrorArchive> {
-        Ok(String::from("some string"))
+    ) -> Result<User, HashMap<String, ErrorArchive>> {
+        Err(HashMap::new())
     }
 }

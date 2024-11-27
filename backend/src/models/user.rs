@@ -1,4 +1,7 @@
 use crate::auth::auth::AuthService;
+use crate::custom_validations::{
+    validate_unique_email, validate_unique_full_name, validate_unique_username,
+};
 use crate::error_archive::ErrorArchive;
 use crate::models::{Pagination, QueryResult};
 use crate::schema::users;
@@ -44,16 +47,25 @@ pub struct User {
 #[derive(Insertable, AsChangeset, Debug, Serialize, Deserialize, Validate, Clone)]
 #[diesel(table_name = users)]
 pub struct NewUser {
-    #[validate(length(min = 4, message = "Username should be atleast 4 characters"))]
+    #[validate(
+        length(min = 4, message = "Username should be atleast 4 characters"),
+        custom(function = "validate_unique_username")
+    )]
     pub username: String,
-    #[validate(email(message = "Please provide a valid email address"))]
+    #[validate(
+        email(message = "Please provide a valid email address"),
+        custom(function = "validate_unique_email")
+    )]
     pub email: String,
+    pub role: UserRole,
     pub password_hash: String,
     pub phone: Option<String>,
     pub avatar: Option<String>,
-    #[validate(length(min = 5, message = "Full name should be atleast 5 characters"))]
+    #[validate(
+        length(min = 5, message = "Full name should be atleast 5 characters"),
+        custom(function = "validate_unique_full_name")
+    )]
     pub full_name: String,
-    pub is_active: Option<bool>,
 }
 
 /// User CRUD operations Implemenations
@@ -117,7 +129,8 @@ impl User {
 
         // Hashing the password first
         new_user.password_hash = AuthService::hash_password(&new_user.password_hash)
-            .map_err(|_| ErrorArchive::InternalServerError).unwrap();
+            .map_err(|_| ErrorArchive::InternalServerError)
+            .unwrap();
 
         let created_user = diesel::insert_into(users::table)
             .values(new_user)
@@ -125,5 +138,56 @@ impl User {
             .get_result::<User>(db_conn);
 
         created_user
+    }
+
+    /// Checking whether a given username exists in the database
+    pub async fn username_exists(
+        db_conn: &mut PgConnection,
+        username: &'_ str,
+    ) -> QueryResult<bool> {
+        // Checking whether a given username already exists in the database by returning its occurence count
+        let username_count = users::table
+            .filter(crate::schema::users::dsl::username.eq(username))
+            .count()
+            .get_result::<i64>(db_conn)?;
+
+        if username_count < 1i64 {
+            Ok(false)
+        } else {
+            Ok(true)
+        }
+    }
+
+    /// Check whether a given email exists in the database
+    pub async fn email_exists(db_conn: &mut PgConnection, email: &'_ str) -> QueryResult<bool> {
+        // Checking whether a given email already exists in the database by returning its occurence count
+        let email_count = users::table
+            .filter(crate::schema::users::dsl::email.eq(email))
+            .count()
+            .get_result::<i64>(db_conn)?;
+
+        if email_count < 1i64 {
+            Ok(false)
+        } else {
+            Ok(true)
+        }
+    }
+
+    /// Check whether a given full name exists in the database
+    pub async fn full_name_exists(
+        db_conn: &mut PgConnection,
+        full_name: &'_ str,
+    ) -> QueryResult<bool> {
+        // Checking whether a given email already exists in the database by returning its occurence count
+        let full_name_count = users::table
+            .filter(crate::schema::users::dsl::full_name.eq(full_name))
+            .count()
+            .get_result::<i64>(db_conn)?;
+
+        if full_name_count < 1i64 {
+            Ok(false)
+        } else {
+            Ok(true)
+        }
     }
 }

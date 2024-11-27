@@ -414,6 +414,7 @@ dependencies = [
  "futures",
  "futures-util",
  "jsonwebtoken",
+ "phonelib",
  "r2d2",
  "regex",
  "serde",
@@ -1580,6 +1581,12 @@ name = "percent-encoding"
 version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e3148f5046208a5d56bcfc03053e3ca6334e51da8dfb19b6cdc8b306fae3283e"
+
+[[package]]
+name = "phonelib"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "045e30dd12600af1c35dede1e19892d54269e8d081d7d7ed8e90a6b6bad297f0"
 
 [[package]]
 name = "pin-project"

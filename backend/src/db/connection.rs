@@ -4,7 +4,7 @@ use dotenvy::dotenv;
 use r2d2::Pool;
 use std::env;
 
-type DBPool = Pool<ConnectionManager<PgConnection>>;
+pub type DBPool = Pool<ConnectionManager<PgConnection>>;
 
 pub struct DBService {
     pub pool: DBPool,

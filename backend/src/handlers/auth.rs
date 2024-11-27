@@ -14,9 +14,7 @@ use diesel::prelude::*;
 use serde_json::json;
 
 pub fn config(cfg: &mut ServiceConfig) {
-    cfg.service(web::scope("auth")
-        .service(login)
-        .service(signup));
+    cfg.service(web::scope("auth").service(login).service(signup));
 }
 
 #[post("login")]
@@ -50,14 +48,21 @@ pub async fn login(
 
 #[post("signup")]
 pub async fn signup(
-    db_conn: web::Data<DBService>,
+    db_service: web::Data<DBService>,
     user: Result<web::Json<NewUser>, actix_web::Error>,
 ) -> HandlerResult {
-    let user = user
+    let db_conn = &mut db_service
+        .pool
+        .get()
+        .map_err(|e| ErrorArchive::DatabaseError(e.to_string()))?;
+    // Extracting the user
+    let new_user = user
         .map_err(|e| ErrorArchive::JsonPayloadError(e.to_string()))?
         .into_inner();
 
-    Ok(HttpResponse::Ok().json(json!({"message": "some message"})))
+    let created_user = AuthService::signup(db_conn, new_user).await.unwrap();
+
+    Ok(HttpResponse::Ok().json(created_user))
 }
 
 // #[get("profile")]

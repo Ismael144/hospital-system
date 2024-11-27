@@ -1,5 +1,6 @@
 pub mod auth;
 pub mod config;
+pub mod custom_validations;
 pub mod db;
 pub mod error_archive;
 pub mod extractors;
@@ -10,8 +11,8 @@ pub mod models;
 pub mod schema;
 
 use actix_web::{web, App, HttpServer};
+use tracing::info;
 use tracing_actix_web::TracingLogger;
-use tracing::info; 
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
@@ -25,7 +26,7 @@ async fn main() -> std::io::Result<()> {
     let db_service_app_data = web::Data::new(db);
 
     info!("Database connection established");
-    
+
     HttpServer::new(move || {
         info!("Configuring new worker");
 
