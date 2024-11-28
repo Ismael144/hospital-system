@@ -1,8 +1,8 @@
+use super::HandlerResult;
 use crate::{
     auth::auth::{AuthService, LoginCredentials},
     db::connection::DBService,
     error_archive::ErrorArchive,
-    handlers::HandlerResult,
     models::user::{NewUser, User},
 };
 use actix_web::{

@@ -1,6 +1,5 @@
 use crate::impls::serde_impls::{bigdecimal_serialize, option_naive_date_time_serialize};
-use crate::models::user::User;
-use crate::models::QueryResult;
+use super::{QueryResult, user::User};
 use crate::schema::invoices;
 use bigdecimal::BigDecimal;
 use chrono::NaiveDateTime;

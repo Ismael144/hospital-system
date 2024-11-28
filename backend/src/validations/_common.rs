@@ -1,6 +1,7 @@
 
 use phonelib;
 use validator::ValidationError;
+use super::ValidationResult;
 
 /// Validating phone number
 pub fn validate_phone_number(phone_number: &str) -> ValidationResult {

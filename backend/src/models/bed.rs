@@ -1,4 +1,4 @@
-use crate::models::QueryResult;
+use super::QueryResult;
 use crate::schema::beds;
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;

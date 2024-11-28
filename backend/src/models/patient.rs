@@ -1,7 +1,7 @@
-use crate::models::visit::Visit;
-use crate::models::QueryResult;
+use super::visit::Visit;
+use super::QueryResult;
 use crate::schema::patients;
-use crate::validations::patient::validate_phone_number;
+use crate::validations::_common::validate_phone_number;
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -69,9 +69,6 @@ impl Patient {
         new_patient: NewPatient<'_>,
     ) -> QueryResult<Patient> {
         // First checking whether the patient exists before inserting another one
-        // Do some validations here
-
-        // I'll probably do some data validation here
         diesel::insert_into(patients::table)
             .values(new_patient)
             .returning(Patient::as_returning())

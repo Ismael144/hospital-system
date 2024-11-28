@@ -1,16 +1,13 @@
 use crate::db::connection::DBService;
 use crate::models::user::User;
-use crate::validations::_common::validate_phone_number;
 use diesel::r2d2::ConnectionManager;
 use diesel::r2d2::PooledConnection;
 use diesel::PgConnection;
-use phonelib;
 use std::sync::Arc;
 use tokio::runtime::Handle;
 use tokio::sync::OnceCell;
-use validator::ValidationError;
-
-type ValidationResult = Result<(), ValidationError>;
+use super::ValidationResult;
+use validator::ValidationError; 
 
 static mut DB: OnceCell<Arc<DBService>> = OnceCell::const_new();
 

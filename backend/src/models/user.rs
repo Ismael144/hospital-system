@@ -1,10 +1,11 @@
+use super::{Pagination, QueryResult};
 use crate::auth::auth::AuthService;
-use crate::validations::user::{
-    validate_unique_email, validate_unique_full_name, validate_unique_username, validate_phone_number
-};
 use crate::error_archive::ErrorArchive;
-use crate::models::{Pagination, QueryResult};
 use crate::schema::users;
+use crate::validations::_common::validate_phone_number;
+use crate::validations::user::{
+    validate_unique_email, validate_unique_full_name, validate_unique_username,
+};
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
 use diesel_derive_enum;
@@ -59,9 +60,7 @@ pub struct NewUser {
     pub email: String,
     pub role: UserRole,
     pub password_hash: String,
-    #[validate(
-        custom(function = "validate_phone_number")
-    )]
+    #[validate(custom(function = "validate_phone_number"))]
     pub phone: Option<String>,
     pub avatar: Option<String>,
     #[validate(

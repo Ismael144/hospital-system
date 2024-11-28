@@ -4,7 +4,7 @@ use serde_json::json;
 use actix_multipart::form::{json::Json as MpJson, tempfile::TempFile, MultipartForm}; 
 use crate::db::connection::DBService;
 use crate::error_archive::ErrorArchive;
-use crate::handlers::HandlerResult;
+use super::HandlerResult;
 use crate::models::{
     user::{NewUser, User},
     Pagination,

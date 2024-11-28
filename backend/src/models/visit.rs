@@ -1,4 +1,4 @@
-use crate::models::{patient::Patient, Pagination, QueryResult};
+use super::{patient::Patient, Pagination, QueryResult};
 use crate::schema::visits;
 use bigdecimal::BigDecimal;
 use chrono::{DateTime, Utc};

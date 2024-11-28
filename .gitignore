@@ -1,2 +1,5 @@
 backend/models/other
 backend/target
+
+PGADMIN_DEFAULT_EMAIL
+PGADMIN_DEFAULT_PASSWORD
