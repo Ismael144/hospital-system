@@ -3,26 +3,28 @@ use crate::auth::auth::AuthService;
 use crate::error_archive::ErrorArchive;
 use crate::schema::users;
 use crate::validations::_common::validate_phone_number;
-use crate::validations::user::{
-    validate_unique_email, validate_unique_full_name, validate_unique_username,
-};
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
 use diesel_derive_enum;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
+use super::Model;
 
 /// These are the roles of different kinds of users
 #[derive(diesel_derive_enum::DbEnum, Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 #[ExistingTypePath = "crate::schema::sql_types::UserRole"]
 pub enum UserRole {
     Admin,
+    Accountant,
     Doctor,
     Nurse,
     Receptionist,
     Pharmacist,
-    Accountant,
 }
+
+impl Model for User {}
+
+impl Model for Vec<User> {}
 
 /// This is the User model, will be used for user authentication, and user Identification
 #[derive(Debug, Clone, Queryable, Identifiable, Selectable, QueryableByName, Serialize)]
@@ -50,12 +52,12 @@ pub struct User {
 pub struct NewUser {
     #[validate(
         length(min = 4, message = "Username should be atleast 4 characters"),
-        custom(function = "validate_unique_username")
+        // custom(function = "validate_unique_username")
     )]
     pub username: String,
     #[validate(
         email(message = "Please provide a valid email address"),
-        custom(function = "validate_unique_email")
+        // custom(function = "validate_unique_email")
     )]
     pub email: String,
     pub role: UserRole,
@@ -65,7 +67,7 @@ pub struct NewUser {
     pub avatar: Option<String>,
     #[validate(
         length(min = 5, message = "Full name should be atleast 5 characters"),
-        custom(function = "validate_unique_full_name")
+        // custom(function = "validate_unique_full_name")
     )]
     pub full_name: String,
 }

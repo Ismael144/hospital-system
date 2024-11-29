@@ -5,7 +5,6 @@ pub mod error_archive;
 pub mod extractors;
 pub mod handlers;
 pub mod impls;
-pub mod middleware;
 pub mod models;
 pub mod schema;
 pub mod validations;

@@ -3,7 +3,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Create ENUM types for static values
-CREATE TYPE user_role AS ENUM ('admin', 'receptionist', 'doctor', 'nurse', 'pharmacist', 'cashier');
+CREATE TYPE user_role AS ENUM ('admin', 'receptionist', 'doctor', 'nurse', 'pharmacist', 'accountant');
 CREATE TYPE patient_type AS ENUM ('inpatient', 'outpatient');
 CREATE TYPE visit_status AS ENUM ('registered', 'triage', 'consultation', 'procedure', 'pharmacy', 'admitted', 'discharged');
 CREATE TYPE procedure_type AS ENUM ('theatre', 'katv', 'scan');

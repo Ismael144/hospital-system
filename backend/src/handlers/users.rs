@@ -1,33 +1,33 @@
-use actix_web::{delete, get, post};
-use actix_web::{web, HttpResponse};
-use serde_json::json;
-use actix_multipart::form::{json::Json as MpJson, tempfile::TempFile, MultipartForm}; 
+use super::HandlerResult;
+use crate::auth::middleware::AuthMiddleware;
 use crate::db::connection::DBService;
 use crate::error_archive::ErrorArchive;
-use super::HandlerResult;
 use crate::models::{
-    user::{NewUser, User},
-    Pagination,
+    user::{NewUser, User, UserRole},
+    Pagination, PaginationResponse,
 };
-use serde::{Serialize, Deserialize};
-
+use actix_multipart::form::{json::Json as MpJson, tempfile::TempFile, MultipartForm};
+use actix_web::{delete, get, post};
+use actix_web::{web, HttpResponse};
+use serde::{Deserialize, Serialize};
+use serde_json::json;
 #[derive(Serialize, Deserialize, Debug)]
 // Handling user avatar upload
 struct Metadata {
-    name: String
+    name: String,
 }
 
 #[derive(MultipartForm, Debug)]
 struct AvatarUploadForm {
     #[multipart(limit = "100MB")]
-    file: TempFile, 
-    metadata: MpJson<Metadata>
+    file: TempFile,
+    metadata: MpJson<Metadata>,
 }
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("users")
-            // .wrap(AuthMiddleware::new(vec![UserRole::Admin]))
+            .wrap(AuthMiddleware::new(vec![UserRole::Admin]))
             .service(get_all_users)
             .service(users_paginated)
             .service(select_single_user)
@@ -78,17 +78,25 @@ pub async fn users_paginated(
         .pool
         .get()
         .map_err(|e| ErrorArchive::DatabaseError(e.to_string()))?;
-    
-    let pagination = pagination_path.into_inner();
 
-    Ok(HttpResponse::Ok().json(User::select_paginated(db_conn, pagination).await?))
+    let pagination = pagination_path.into_inner();
+    let paginated_users = User::select_paginated(db_conn, pagination.clone()).await?;
+    let items_on_page_count = paginated_users.len();
+
+    Ok(
+        HttpResponse::Ok().json(PaginationResponse::<Vec<User>>::new(
+            paginated_users,
+            pagination,
+            items_on_page_count,
+        )),
+    )
 }
 
 #[post("")]
 pub async fn signup_user(
     db_service: web::Data<DBService>,
     new_user: web::Json<NewUser>,
-    MultipartForm(form): MultipartForm<AvatarUploadForm>
+    MultipartForm(form): MultipartForm<AvatarUploadForm>,
 ) -> HandlerResult {
     let create_user = new_user.into_inner();
     let db_conn = &mut db_service

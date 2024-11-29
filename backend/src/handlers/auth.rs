@@ -32,7 +32,7 @@ pub async fn login(
     let login_credentials = credentials.into_inner();
 
     let user = crate::schema::users::table
-        .filter(email.eq(login_credentials.username))
+        .filter(username.eq(login_credentials.username))
         .first::<User>(db_conn)
         .map_err(|_| ErrorArchive::InvalidCredentials)?;
 
@@ -63,13 +63,13 @@ pub async fn signup(
     let user_creation_result = AuthService::signup(db_conn, new_user).await;
 
     match user_creation_result {
-        Ok(created_user) => Ok(HttpResponse::Ok()
-            .json(json!({"status_code": 200, "success": true, "user": created_user}))),
+        Ok(created_user) => {
+            Ok(HttpResponse::Ok()
+                .json(json!({"status": 200, "success": true, "user": created_user})))
+        }
         Err(errors) => {
-            // Change status code
-
             Ok(HttpResponse::BadRequest()
-                .json(json!({"status_code": 400, "success": false, "errors": errors })))
+                .json(json!({"status": 400, "success": false, "errors": errors })))
         }
     }
 }

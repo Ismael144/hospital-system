@@ -1,4 +1,5 @@
 use super::visit::Visit;
+use super::Pagination;
 use super::QueryResult;
 use crate::schema::patients;
 use crate::validations::_common::validate_phone_number;
@@ -7,7 +8,7 @@ use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, diesel_derive_enum::DbEnum, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, diesel_derive_enum::DbEnum, Serialize, Deserialize)]
 #[ExistingTypePath = "crate::schema::sql_types::PatientType"]
 pub enum PatientType {
     Inpatient,
@@ -15,7 +16,7 @@ pub enum PatientType {
     Emergency,
 }
 
-#[derive(Debug, Clone, Queryable, Identifiable, Serialize, Selectable)]
+#[derive(Debug, Clone, Queryable, Identifiable, Selectable, Serialize, Deserialize)]
 #[diesel(table_name = patients, check_for_backend(diesel::pg::Pg))]
 #[diesel(primary_key(patient_id), belongs_to(User, foreign_key = registered_by))]
 pub struct Patient {
@@ -42,9 +43,11 @@ pub struct NewPatient<'a> {
     pub name: &'a str,
     #[validate(length(min = 14, max = 14))]
     pub nin: Option<&'a str>,
+    #[validate()]
     pub age: Option<i32>,
     pub gender: Option<&'a str>,
     pub patient_type: PatientType,
+    #[validate(custom(function = "validate_phone_number"))]
     pub phone: Option<&'a str>,
     pub address: Option<&'a str>,
     pub emergency_contact: Option<&'a str>,
@@ -80,6 +83,17 @@ impl Patient {
         patients::table.load(db_conn)
     }
 
+    /// Returns a collection of patients but paginated
+    pub async fn patients_paginated(
+        db_conn: &mut PgConnection,
+        pagination: Pagination,
+    ) -> QueryResult<Vec<Patient>> {
+        patients::table
+            .limit(pagination.items_per_page)
+            .offset(pagination.offset())
+            .load::<Patient>(db_conn)
+    }
+
     /// Update a given patient and then return the updated record
     pub async fn update_by_id(
         db_conn: &mut PgConnection,
@@ -113,6 +127,7 @@ impl Patient {
             .optional()
     }
 
+    /// Search if user with given NIN number exists in database
     async fn check_patient_existence_by_nin(
         db_conn: &mut PgConnection,
         patient_nin: &'_ str,
