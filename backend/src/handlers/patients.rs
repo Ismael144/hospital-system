@@ -1,18 +1,15 @@
 use super::HandlerResult;
 use crate::models::Pagination;
 use crate::{
-    auth::auth::{AuthService, LoginCredentials},
     db::connection::DBService,
     error_archive::ErrorArchive,
-    models::patient::{NewPatient, Patient},
+    models::patient::Patient,
 };
 use actix_web::{
-    get, post,
+    get,
     web::{self, ServiceConfig},
     HttpResponse,
 };
-use diesel::prelude::*;
-use serde_json::json;
 
 pub fn config(cfg: &mut ServiceConfig) {
     cfg.service(web::scope("patients"));
