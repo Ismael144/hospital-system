@@ -9,4 +9,3 @@ services:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=pass
       - POSTGRES_DB=hospital_ms
-

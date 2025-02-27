@@ -11,11 +11,11 @@ use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData, 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::env;
-use validator::{Validate};
+use validator::Validate;
 
-const TOKEN_EXPIRATION_HOURS: i64 = 24;
+const TOKEN_EXPIRATION_HOURS: i64 = 1;
 
-// Claims struct for JWT implementation
+/// Claims struct for JWT implementation
 #[derive(Serialize, Deserialize)]
 pub struct Claims {
     pub sub: i32,
@@ -24,14 +24,14 @@ pub struct Claims {
     pub iat: i64,
 }
 
-// Login credentials
+/// Login credentials
 #[derive(Serialize, Deserialize)]
 pub struct LoginCredentials {
-    pub username: String,
+    pub email: String,
     pub password: String,
 }
 
-// Token response
+/// Token response
 #[derive(Serialize, Deserialize)]
 pub struct TokenResponse {
     token: String,
@@ -42,6 +42,7 @@ pub struct TokenResponse {
 pub struct AuthService;
 
 impl AuthService {
+    /// Hash password inorder to be stored securely in the database
     pub fn hash_password(password: &str) -> Result<String, ErrorArchive> {
         let salt = SaltString::generate(&mut OsRng);
         let argon2 = Argon2::default();
@@ -65,13 +66,9 @@ impl AuthService {
         dotenvy::dotenv().ok();
 
         let jwt_secret = env::var("JWT_SECRET").expect("A JWT Secret is expected...");
-        let token_expiration_hours = env::var("TOKEN_EXPIRATION_HOURS")
-            .expect("Token expiration hours needed...")
-            .parse::<i64>()
-            .unwrap();
 
         let now = Utc::now();
-        let exp = now + Duration::hours(token_expiration_hours);
+        let exp = now + Duration::hours(TOKEN_EXPIRATION_HOURS);
 
         let claims = Claims {
             sub: user.user_id,
@@ -90,7 +87,7 @@ impl AuthService {
         Ok(TokenResponse {
             token,
             token_type: "Bearer".to_string(),
-            expires_in: token_expiration_hours * 3600,
+            expires_in: TOKEN_EXPIRATION_HOURS * 3600,
         })
     }
 
@@ -106,6 +103,25 @@ impl AuthService {
             &Validation::default(),
         )
         .map_err(|_| ErrorArchive::InternalServerError)
+    }
+
+    pub async fn get_auth_user(
+        db_conn: &mut PgConnection,
+        token: &str,
+    ) -> Result<User, ErrorArchive> {
+        // First check whether token is valid
+        match Self::validate_token(token) {
+            Ok(token_data) => {
+                // Fetch user by id
+                let user_id = token_data.claims.sub;
+                let user = User::get_user_by_id(db_conn, user_id)
+                    .await
+                    .map_err(|_| ErrorArchive::InternalServerError)?;
+
+                Ok(user)
+            }
+            Err(e) => Err(ErrorArchive::Unauthorized(e.to_string())),
+        }
     }
 
     pub async fn signup(

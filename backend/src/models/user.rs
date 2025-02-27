@@ -1,14 +1,14 @@
+use super::Model;
 use super::{Pagination, QueryResult};
 use crate::auth::auth::AuthService;
 use crate::error_archive::ErrorArchive;
+use crate::field_validations::validate_phone_number;
 use crate::schema::users;
-use crate::validations::_common::validate_phone_number;
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
 use diesel_derive_enum;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
-use super::Model;
 
 /// These are the roles of different kinds of users
 #[derive(diesel_derive_enum::DbEnum, Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
@@ -50,25 +50,16 @@ pub struct User {
 #[derive(Insertable, AsChangeset, Debug, Serialize, Deserialize, Validate, Clone)]
 #[diesel(table_name = users)]
 pub struct NewUser {
-    #[validate(
-        length(min = 4, message = "Username should be atleast 4 characters"),
-        // custom(function = "validate_unique_username")
-    )]
+    #[validate(length(min = 4, message = "Username should be atleast 4 characters"))]
     pub username: String,
-    #[validate(
-        email(message = "Please provide a valid email address"),
-        // custom(function = "validate_unique_email")
-    )]
+    #[validate(email(message = "Please provide a valid email address"))]
     pub email: String,
     pub role: UserRole,
     pub password_hash: String,
     #[validate(custom(function = "validate_phone_number"))]
     pub phone: Option<String>,
     pub avatar: Option<String>,
-    #[validate(
-        length(min = 5, message = "Full name should be atleast 5 characters"),
-        // custom(function = "validate_unique_full_name")
-    )]
+    #[validate(length(min = 5, message = "Full name should be atleast 5 characters"))]
     pub full_name: String,
 }
 

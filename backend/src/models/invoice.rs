@@ -56,3 +56,4 @@ impl Invoice {
             .get_result(db_conn)
     }
 }
+ 

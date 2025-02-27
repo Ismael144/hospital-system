@@ -11,12 +11,14 @@ use actix_web::{delete, get, post};
 use actix_web::{web, HttpResponse};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-#[derive(Serialize, Deserialize, Debug)]
+
 // Handling user avatar upload
+#[derive(Serialize, Deserialize, Debug)]
 struct Metadata {
     name: String,
 }
 
+/// The avatar upload fom, will be used to upload user avatars
 #[derive(MultipartForm, Debug)]
 struct AvatarUploadForm {
     #[multipart(limit = "100MB")]

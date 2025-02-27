@@ -8,7 +8,7 @@ pub mod handlers;
 pub mod impls;
 pub mod models;
 pub mod schema;
-pub mod validations;
+pub mod field_validations;
 
 use actix_web::{web, App, HttpServer};
 use tracing::info;
@@ -32,6 +32,7 @@ async fn main() -> std::io::Result<()> {
 
         App::new()
             .app_data(db_service_app_data.clone())
+            .wrap(config::configure_cors())
             .wrap(TracingLogger::default())
             .configure(handlers::base_handler_service_config)
     })

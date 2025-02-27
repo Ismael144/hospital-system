@@ -125,9 +125,8 @@ diesel::table! {
         patient_type -> PatientType,
         #[max_length = 20]
         phone -> Nullable<Varchar>,
+        profile_photo -> Nullable<Text>,
         address -> Nullable<Text>,
-        #[max_length = 100]
-        emergency_contact -> Nullable<Varchar>,
         #[max_length = 20]
         emergency_phone -> Nullable<Varchar>,
         registered_by -> Nullable<Int4>,

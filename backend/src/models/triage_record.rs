@@ -3,7 +3,8 @@ use crate::schema::triage_records;
 use bigdecimal::BigDecimal;
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
+use validator::Validate;
 
 #[derive(Debug, Clone, Queryable, Identifiable, Selectable, Serialize)]
 #[diesel(table_name = triage_records)]
@@ -30,4 +31,35 @@ pub struct TriageRecord {
     #[serde(with = "option_bigdecimal_serialize")]
     pub charges: Option<BigDecimal>,
     pub created_at: Option<DateTime<Utc>>,
+}
+
+#[derive(Insertable, Deserialize, Clone, Validate)]
+#[diesel(table_name = triage_records)]
+pub struct NewTriageRecord {
+    pub visit_id: Option<i32>,
+    pub nurse_id: Option<i32>,
+    pub triage_time: Option<DateTime<Utc>>,
+    #[serde(with = "option_bigdecimal_serialize")]
+    pub temperature: Option<BigDecimal>,
+    pub blood_pressure: Option<String>,
+    pub heart_rate: Option<i32>,
+    pub respiratory_rate: Option<i32>,
+    pub oxygen_saturation: Option<i32>,
+    #[serde(with = "option_bigdecimal_serialize")]
+    pub weight: Option<BigDecimal>,
+    #[serde(with = "option_bigdecimal_serialize")]
+    pub height: Option<BigDecimal>,
+    pub symptoms: Option<String>,
+    pub notes: Option<String>,
+    #[serde(with = "option_bigdecimal_serialize")]
+    pub charges: Option<BigDecimal>,
+}
+
+impl TriageRecord {
+    pub async fn new(pg_conn: &mut PgConnection, new_triage_record: NewTriageRecord) -> QueryResult<TriageRecord> {
+        diesel::insert_into(triage_records::table)
+        .values(new_triage_record)
+        .returning(TriageRecord::as_returning())
+        .get_result(pg_conn)
+    }    
 }

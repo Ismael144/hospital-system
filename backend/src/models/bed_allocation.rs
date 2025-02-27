@@ -1,11 +1,13 @@
 use super::{bed::Bed, user::User};
+use crate::impls::serde_impls::bigdecimal_serialize;
 use crate::schema::bed_allocations;
 use bigdecimal::BigDecimal;
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
+use serde::Serialize;
 
 /// Bed Allocation model, model responsible for allocating bed to patient
-#[derive(Debug, Clone, Queryable, Identifiable, Associations, Selectable)]
+#[derive(Debug, Clone, Queryable, Identifiable, Associations, Selectable, Serialize)]
 #[diesel(table_name = bed_allocations, check_for_backend(diesel::pg::Pg))]
 #[diesel(primary_key(allocation_id))]
 #[diesel(belongs_to(Bed), belongs_to(User, foreign_key = nurse_id))]
@@ -16,6 +18,7 @@ pub struct BedAllocation {
     pub nurse_id: Option<i32>,
     pub start_time: Option<DateTime<Utc>>,
     pub end_time: Option<DateTime<Utc>>,
+    #[serde(with = "bigdecimal_serialize")]
     pub daily_charge: BigDecimal,
     pub notes: Option<String>,
     pub created_at: Option<DateTime<Utc>>,

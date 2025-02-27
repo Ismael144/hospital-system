@@ -12,7 +12,7 @@ pub enum ErrorArchive {
     InternalServerError,
     #[error("Bad request: {0}")]
     BadRequest(String),
-    #[error("Requested Resource Not Found")]
+    #[error("The requested resource was not found...")]
     NotFound,
     #[error("Unauthorized: {0}")]
     Unauthorized(String),
@@ -25,7 +25,7 @@ pub enum ErrorArchive {
     #[error("Json Payload Error: {0}")]
     JsonPayloadError(String),
     // For user authentication
-    #[error("Invalid credentials")]
+    #[error("Invalid Email Password Combination")]
     InvalidCredentials,
     #[error("Invalid token")]
     InvalidToken,

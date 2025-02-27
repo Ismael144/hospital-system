@@ -35,3 +35,8 @@ pub struct Procedure {
     #[serde(with = "option_naive_date_time_serialize")]
     pub created_at: Option<NaiveDateTime>,
 }
+
+
+impl Procedure {
+
+}

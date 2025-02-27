@@ -1,16 +1,17 @@
 use super::visit::Visit;
 use super::Pagination;
 use super::QueryResult;
+use crate::field_validations::{is_empty, validate_phone_number};
 use crate::schema::patients;
-use crate::validations::_common::validate_phone_number;
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, diesel_derive_enum::DbEnum, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, diesel_derive_enum::DbEnum, Serialize, Deserialize)]
 #[ExistingTypePath = "crate::schema::sql_types::PatientType"]
 pub enum PatientType {
+    #[default]
     Inpatient,
     Outpatient,
     Emergency,
@@ -28,31 +29,51 @@ pub struct Patient {
     pub gender: Option<String>,
     pub patient_type: PatientType,
     pub phone: Option<String>,
+    pub profile_photo: Option<String>, 
     pub address: Option<String>,
-    pub emergency_contact: Option<String>,
     pub emergency_phone: Option<String>,
     pub registered_by: Option<i32>,
+    #[serde(skip_serializing)]
     pub registered_at: Option<NaiveDateTime>,
+    #[serde(skip_serializing)]
     pub updated_at: Option<NaiveDateTime>,
 }
 
-#[derive(Insertable, AsChangeset, Validate)]
+#[derive(Insertable, AsChangeset, Validate, Clone, Deserialize)]
 #[diesel(table_name = patients)]
-pub struct NewPatient<'a> {
-    #[validate(length(min = 3))]
-    pub name: &'a str,
-    #[validate(length(min = 14, max = 14))]
-    pub nin: Option<&'a str>,
-    #[validate()]
+pub struct NewPatient {
+    #[validate(
+        custom(function = "is_empty"),
+        length(min = 4, message = "Please enter a name with atleast 4 characters!")
+    )]
+    pub name: String,
+    #[validate(
+        custom(function = "is_empty"),
+        length(min = 14, max = 14, message = "Please enter a valid nin number!")
+    )]
+    pub nin: Option<String>,
+    #[validate(range(
+        min = 0,
+        max = 165,
+        message = "Please provide a valid age in range between 0 - 165"
+    ))]
     pub age: Option<i32>,
-    pub gender: Option<&'a str>,
+    #[validate(custom(function = "is_empty"))]
+    pub gender: Option<String>,
     pub patient_type: PatientType,
-    #[validate(custom(function = "validate_phone_number"))]
-    pub phone: Option<&'a str>,
-    pub address: Option<&'a str>,
-    pub emergency_contact: Option<&'a str>,
-    #[validate(custom(function = "validate_phone_number"))]
-    pub emergency_phone: Option<&'a str>,
+    #[validate(
+        custom(function = "is_empty"),
+        custom(function = "validate_phone_number")
+    )]
+    pub phone: Option<String>,
+    pub profile_photo: Option<String>,
+    #[validate(custom(function = "is_empty"))]
+    pub address: Option<String>,
+    #[validate(
+        custom(function = "is_empty"),
+        custom(function = "validate_phone_number")
+    )]
+    pub emergency_phone: Option<String>,
     pub registered_by: Option<i32>,
 }
 
@@ -64,13 +85,9 @@ pub struct PatientWithVisits {
 }
 
 /// Check using name, nin and phone
-
 impl Patient {
     /// Create a new patient
-    pub async fn new(
-        db_conn: &mut PgConnection,
-        new_patient: NewPatient<'_>,
-    ) -> QueryResult<Patient> {
+    pub async fn new(db_conn: &mut PgConnection, new_patient: NewPatient) -> QueryResult<Patient> {
         // First checking whether the patient exists before inserting another one
         diesel::insert_into(patients::table)
             .values(new_patient)
@@ -81,6 +98,13 @@ impl Patient {
     /// Fetch all patients from database
     pub async fn select_all(db_conn: &mut PgConnection) -> QueryResult<Vec<Patient>> {
         patients::table.load(db_conn)
+    }
+
+    /// Fetch single patient by id
+    pub async fn get_patient_by_id(db_conn: &mut PgConnection, patient_id: i32) -> QueryResult<Patient> {
+        patients::table
+            .filter(patients::dsl::patient_id.eq(patient_id))
+            .get_result(db_conn)
     }
 
     /// Returns a collection of patients but paginated
@@ -98,7 +122,7 @@ impl Patient {
     pub async fn update_by_id(
         db_conn: &mut PgConnection,
         patient_id: i32,
-        new_patient: NewPatient<'_>,
+        new_patient: NewPatient,
     ) -> QueryResult<Patient> {
         diesel::update(patients::table.filter(patients::dsl::patient_id.eq(patient_id)))
             .set(new_patient)
@@ -114,10 +138,10 @@ impl Patient {
     }
 
     /// Checks if a patient exists by using their name
-    async fn check_patient_existence_by_name(
+    pub async fn check_patient_existence_by_name(
         db_conn: &mut PgConnection,
         patient_name: &'_ str,
-    ) -> QueryResult<Option<Patient>> {
+    ) -> QueryResult<bool> {
         use crate::schema::patients::dsl::name;
 
         patients::table
@@ -125,13 +149,14 @@ impl Patient {
             .select(Patient::as_select())
             .get_result(db_conn)
             .optional()
+            .map(|patient| patient.is_some())
     }
 
     /// Search if user with given NIN number exists in database
-    async fn check_patient_existence_by_nin(
+    pub async fn check_patient_existence_by_nin(
         db_conn: &mut PgConnection,
         patient_nin: &'_ str,
-    ) -> QueryResult<Option<Patient>> {
+    ) -> QueryResult<bool> {
         use crate::schema::patients::dsl::nin;
 
         patients::table
@@ -139,6 +164,7 @@ impl Patient {
             .select(Patient::as_select())
             .get_result(db_conn)
             .optional()
+            .map(|patient| patient.is_some())
     }
 
     /// This function will return a collection of patients with their corresponding visits
@@ -159,5 +185,5 @@ impl Patient {
             .collect::<Vec<PatientWithVisits>>();
 
         Ok(visits_per_patient)
-    }
+    } 
 }

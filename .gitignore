@@ -1,5 +1,7 @@
 backend/models/other
 backend/target
+frontend2
+frontend/node_modules
 
-PGADMIN_DEFAULT_EMAIL
-PGADMIN_DEFAULT_PASSWORD
+# PGADMIN_DEFAULT_EMAIL
+# PGADMIN_DEFAULT_PASSWORD
