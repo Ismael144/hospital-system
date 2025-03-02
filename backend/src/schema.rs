@@ -24,9 +24,9 @@ pub mod sql_types {
 
 diesel::table! {
     administered_medications (admin_id) {
-        admin_id -> Int4,
-        prescription_id -> Nullable<Int4>,
-        nurse_id -> Nullable<Int4>,
+        admin_id -> Uuid,
+        prescription_id -> Nullable<Uuid>,
+        nurse_id -> Nullable<Uuid>,
         administered_at -> Nullable<Timestamptz>,
         charges -> Nullable<Numeric>,
         notes -> Nullable<Text>,
@@ -35,11 +35,24 @@ diesel::table! {
 }
 
 diesel::table! {
+    audit_log (audit_id) {
+        audit_id -> Uuid,
+        #[max_length = 100]
+        table_name -> Varchar,
+        #[max_length = 10]
+        operation -> Varchar,
+        record_id -> Nullable<Uuid>,
+        changed_data -> Nullable<Jsonb>,
+        changed_at -> Nullable<Timestamptz>,
+    }
+}
+
+diesel::table! {
     bed_allocations (allocation_id) {
-        allocation_id -> Int4,
-        visit_id -> Nullable<Int4>,
-        bed_id -> Nullable<Int4>,
-        nurse_id -> Nullable<Int4>,
+        allocation_id -> Uuid,
+        visit_id -> Nullable<Uuid>,
+        bed_id -> Nullable<Uuid>,
+        nurse_id -> Nullable<Uuid>,
         start_time -> Nullable<Timestamptz>,
         end_time -> Nullable<Timestamptz>,
         daily_charge -> Numeric,
@@ -51,7 +64,7 @@ diesel::table! {
 
 diesel::table! {
     beds (bed_id) {
-        bed_id -> Int4,
+        bed_id -> Uuid,
         #[max_length = 20]
         bed_number -> Varchar,
         #[max_length = 50]
@@ -65,9 +78,9 @@ diesel::table! {
 
 diesel::table! {
     doctor_consultations (consultation_id) {
-        consultation_id -> Int4,
-        visit_id -> Nullable<Int4>,
-        doctor_id -> Nullable<Int4>,
+        consultation_id -> Uuid,
+        visit_id -> Nullable<Uuid>,
+        doctor_id -> Nullable<Uuid>,
         consultation_time -> Nullable<Timestamptz>,
         diagnosis -> Nullable<Text>,
         notes -> Nullable<Text>,
@@ -84,20 +97,20 @@ diesel::table! {
     use super::sql_types::PaymentStatus;
 
     invoices (invoice_id) {
-        invoice_id -> Int4,
-        visit_id -> Nullable<Int4>,
+        invoice_id -> Uuid,
+        visit_id -> Nullable<Uuid>,
         generated_at -> Nullable<Timestamptz>,
         total_amount -> Numeric,
         payment_status -> Nullable<PaymentStatus>,
         notes -> Nullable<Text>,
-        created_by -> Nullable<Int4>,
+        created_by -> Nullable<Uuid>,
         updated_at -> Nullable<Timestamptz>,
     }
 }
 
 diesel::table! {
     medications (medication_id) {
-        medication_id -> Int4,
+        medication_id -> Uuid,
         #[max_length = 100]
         name -> Varchar,
         description -> Nullable<Text>,
@@ -114,7 +127,7 @@ diesel::table! {
     use super::sql_types::PatientType;
 
     patients (patient_id) {
-        patient_id -> Int4,
+        patient_id -> Uuid,
         #[max_length = 100]
         name -> Varchar,
         #[max_length = 20]
@@ -129,7 +142,7 @@ diesel::table! {
         address -> Nullable<Text>,
         #[max_length = 20]
         emergency_phone -> Nullable<Varchar>,
-        registered_by -> Nullable<Int4>,
+        registered_by -> Nullable<Uuid>,
         registered_at -> Nullable<Timestamptz>,
         updated_at -> Nullable<Timestamptz>,
     }
@@ -137,9 +150,9 @@ diesel::table! {
 
 diesel::table! {
     prescriptions (prescription_id) {
-        prescription_id -> Int4,
-        consultation_id -> Nullable<Int4>,
-        medication_id -> Nullable<Int4>,
+        prescription_id -> Uuid,
+        consultation_id -> Nullable<Uuid>,
+        medication_id -> Nullable<Uuid>,
         #[max_length = 50]
         dosage -> Varchar,
         #[max_length = 50]
@@ -155,9 +168,9 @@ diesel::table! {
     use super::sql_types::ProcedureType;
 
     procedures (procedure_id) {
-        procedure_id -> Int4,
-        visit_id -> Nullable<Int4>,
-        doctor_id -> Nullable<Int4>,
+        procedure_id -> Uuid,
+        visit_id -> Nullable<Uuid>,
+        doctor_id -> Nullable<Uuid>,
         procedure_type -> ProcedureType,
         procedure_time -> Nullable<Timestamptz>,
         description -> Nullable<Text>,
@@ -170,9 +183,9 @@ diesel::table! {
 
 diesel::table! {
     triage_records (triage_id) {
-        triage_id -> Int4,
-        visit_id -> Nullable<Int4>,
-        nurse_id -> Nullable<Int4>,
+        triage_id -> Uuid,
+        visit_id -> Nullable<Uuid>,
+        nurse_id -> Nullable<Uuid>,
         triage_time -> Nullable<Timestamptz>,
         temperature -> Nullable<Numeric>,
         #[max_length = 20]
@@ -194,7 +207,7 @@ diesel::table! {
     use super::sql_types::UserRole;
 
     users (user_id) {
-        user_id -> Int4,
+        user_id -> Uuid,
         #[max_length = 50]
         username -> Varchar,
         password_hash -> Text,
@@ -218,8 +231,8 @@ diesel::table! {
     use super::sql_types::VisitStatus;
 
     visits (visit_id) {
-        visit_id -> Int4,
-        patient_id -> Nullable<Int4>,
+        visit_id -> Uuid,
+        patient_id -> Nullable<Uuid>,
         visit_date -> Nullable<Timestamptz>,
         status -> VisitStatus,
         complaint -> Nullable<Text>,
@@ -251,6 +264,7 @@ diesel::joinable!(visits -> patients (patient_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     administered_medications,
+    audit_log,
     bed_allocations,
     beds,
     doctor_consultations,

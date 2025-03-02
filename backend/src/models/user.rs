@@ -1,13 +1,14 @@
-use super::Model;
-use super::{Pagination, QueryResult};
+use super::{Model, Pagination, QueryResult};
 use crate::auth::auth::AuthService;
 use crate::error_archive::ErrorArchive;
 use crate::field_validations::validate_phone_number;
+use crate::impls::serde_impls::uuid_serialize;
 use crate::schema::users;
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
 use diesel_derive_enum;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 use validator::Validate;
 
 /// These are the roles of different kinds of users
@@ -22,17 +23,13 @@ pub enum UserRole {
     Pharmacist,
 }
 
-impl Model for User {}
-
-impl Model for Vec<User> {}
-
 /// This is the User model, will be used for user authentication, and user Identification
 #[derive(Debug, Clone, Queryable, Identifiable, Selectable, QueryableByName, Serialize)]
 #[diesel(table_name = users, check_for_backend(diesel::pg::Pg))]
 #[diesel(primary_key(user_id))]
 pub struct User {
-    #[serde(rename = "id")]
-    pub user_id: i32,
+    #[serde(rename = "id", with = "uuid_serialize")]
+    pub user_id: Uuid,
     pub username: String,
     pub password_hash: String,
     /// User role depending on who is using the system
@@ -56,65 +53,72 @@ pub struct NewUser {
     pub email: String,
     pub role: UserRole,
     pub password_hash: String,
-    #[validate(custom(function = "validate_phone_number"))]
+    // #[validate(custom(function = "validate_phone_number"))]
     pub phone: Option<String>,
     pub avatar: Option<String>,
     #[validate(length(min = 5, message = "Full name should be atleast 5 characters"))]
     pub full_name: String,
 }
 
+impl Model for User {}
+
 /// User CRUD operations Implemenations
 impl User {
     /// Insert new user into database
     /// Takes in a new user instance
-    pub async fn new(connection: &mut PgConnection, new_user: NewUser) -> QueryResult<User> {
+    pub async fn new(db_conn: &mut PgConnection, new_user: NewUser) -> QueryResult<User> {
         diesel::insert_into(users::table)
             .values(new_user)
             .returning(User::as_returning())
-            .get_result(connection)
+            .get_result(db_conn)
     }
 
     /// This method will fetch all users from the database
-    pub async fn select_all(connection: &mut PgConnection) -> QueryResult<Vec<User>> {
-        users::table.load(connection)
+    pub async fn select_all(db_conn: &mut PgConnection) -> QueryResult<Vec<User>> {
+        users::table.load(db_conn)
     }
-
+    
+    /// Returns row count
+    pub async fn row_count(db_conn: &mut PgConnection) -> QueryResult<i64> {
+        users::table.count().get_result::<i64>(db_conn)
+    }
+    
     /// The paginated data for users model, it takes in the Pagination struct
-    pub async fn select_paginated(
-        connection: &mut PgConnection,
+    pub async fn paginate(
+        db_conn: &mut PgConnection,
         pagination: Pagination,
     ) -> QueryResult<Vec<User>> {
         users::table
             .limit(pagination.items_per_page)
             .offset(pagination.offset())
-            .load::<User>(connection)
+            .load::<User>(db_conn)
     }
 
     /// Getting single user by id
-    pub async fn get_user_by_id(connection: &mut PgConnection, user_id: i32) -> QueryResult<User> {
+    pub async fn get_user_by_id(db_conn: &mut PgConnection, user_id: Uuid) -> QueryResult<User> {
         users::table
             .filter(users::dsl::user_id.eq(user_id))
-            .get_result(connection)
+            .get_result(db_conn)
     }
 
     /// Updating user by id, after it returns the updated user
-    /// Trying to delete a user by id which does not exist would return an error
     pub async fn update_user_by_id(
-        connection: &mut PgConnection,
-        user_id: i32,
+        db_conn: &mut PgConnection,
+        user_id: Uuid,
         update_user: NewUser,
     ) -> QueryResult<User> {
         diesel::update(users::table.filter(users::dsl::user_id.eq(user_id)))
             .set(update_user)
             .returning(User::as_returning())
-            .get_result(connection)
+            .get_result(db_conn)
     }
 
     /// Deleting the user, it returns the deleted user back
-    pub async fn delete_by_id(connection: &mut PgConnection, user_id: i32) -> QueryResult<User> {
+    /// Trying to delete a user by id which does not exist would return an error
+    pub async fn delete_by_id(db_conn: &mut PgConnection, user_id: Uuid) -> QueryResult<User> {
         diesel::delete(users::table.filter(users::dsl::user_id.eq(user_id)))
             .returning(User::as_returning())
-            .get_result(connection)
+            .get_result(db_conn)
     }
 
     /// Creates user into the database

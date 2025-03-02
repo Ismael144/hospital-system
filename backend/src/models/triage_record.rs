@@ -1,20 +1,25 @@
-use crate::impls::serde_impls::option_bigdecimal_serialize;
+use crate::impls::serde_impls::{
+    option_bigdecimal_serialize, option_uuid_serialize, uuid_serialize,
+};
 use crate::schema::triage_records;
 use bigdecimal::BigDecimal;
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 use validator::Validate;
 
 #[derive(Debug, Clone, Queryable, Identifiable, Selectable, Serialize)]
 #[diesel(table_name = triage_records)]
 #[diesel(primary_key(triage_id))]
-#[diesel(belongs_to(User, foreign_key = nurse_id), belongs_to(Visit))]
+#[diesel(belongs_to(User, foreign_key = nurse_id), belongs_to(Visit, foreign_key = visit_id))]
 pub struct TriageRecord {
-    #[serde(rename = "id")]
-    pub triage_id: i32,
-    pub visit_id: Option<i32>,
-    pub nurse_id: Option<i32>,
+    #[serde(rename = "id", with = "uuid_serialize")]
+    pub triage_id: Uuid,
+    #[serde(with = "option_uuid_serialize")]
+    pub visit_id: Option<Uuid>,
+    #[serde(with = "option_uuid_serialize")]
+    pub nurse_id: Option<Uuid>,
     pub triage_time: Option<DateTime<Utc>>,
     #[serde(with = "option_bigdecimal_serialize")]
     pub temperature: Option<BigDecimal>,
@@ -36,8 +41,10 @@ pub struct TriageRecord {
 #[derive(Insertable, Deserialize, Clone, Validate)]
 #[diesel(table_name = triage_records)]
 pub struct NewTriageRecord {
-    pub visit_id: Option<i32>,
-    pub nurse_id: Option<i32>,
+    #[serde(with = "option_uuid_serialize")]
+    pub visit_id: Option<Uuid>,
+    #[serde(with = "option_uuid_serialize")]
+    pub nurse_id: Option<Uuid>,
     pub triage_time: Option<DateTime<Utc>>,
     #[serde(with = "option_bigdecimal_serialize")]
     pub temperature: Option<BigDecimal>,
@@ -56,10 +63,13 @@ pub struct NewTriageRecord {
 }
 
 impl TriageRecord {
-    pub async fn new(pg_conn: &mut PgConnection, new_triage_record: NewTriageRecord) -> QueryResult<TriageRecord> {
+    pub async fn new(
+        pg_conn: &mut PgConnection,
+        new_triage_record: NewTriageRecord,
+    ) -> QueryResult<TriageRecord> {
         diesel::insert_into(triage_records::table)
-        .values(new_triage_record)
-        .returning(TriageRecord::as_returning())
-        .get_result(pg_conn)
-    }    
+            .values(new_triage_record)
+            .returning(TriageRecord::as_returning())
+            .get_result(pg_conn)
+    }
 }

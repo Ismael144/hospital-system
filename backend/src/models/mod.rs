@@ -11,15 +11,18 @@ pub mod triage_record;
 pub mod user;
 pub mod visit;
 
+use diesel::PgConnection;
+use futures::Future;
 use serde::{Deserialize, Serialize};
 
-/// Generic diesel result, where Error variant is error coming from diesel
+/// A generic Diesel result where the `Err` variant comes from Diesel.
 pub type QueryResult<T> = Result<T, diesel::result::Error>;
 
-/// This trait will be implemented by every model
+/// Marker trait for all models.
+/// You can later add common helper methods (e.g., save, update) here.
 pub trait Model {}
 
-/// The Pagination struct: Will be used to pagination for data
+/// Parameters for pagination.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Pagination {
     pub page: i64,
@@ -27,31 +30,31 @@ pub struct Pagination {
 }
 
 impl Pagination {
+    /// Computes the offset used in the query.
     pub fn offset(&self) -> i64 {
         (self.page - 1) * self.items_per_page
     }
 }
 
-/// Pagination Response, to be used in handlers
+/// Generic response for paginated data.
 #[derive(Serialize, Clone)]
-pub struct PaginationResponse<T>
-where
-    T: Model,
-{
+pub struct PaginationResponse<T> {
     pub data: T,
     pub pagination: Pagination,
-    pub items_on_page_count: usize,
+    pub total_pages: usize,
 }
 
-impl<T> PaginationResponse<T>
-where
-    T: Model,
-{
-    pub fn new(data: T, pagination: Pagination, items_on_page_count: usize) -> Self {
+impl<T> PaginationResponse<T> {
+    /// Creates a new pagination response.
+    pub fn new(data: T, pagination: Pagination, row_count: usize) -> Self {
+        // Compute the total pages
+        let pages = (row_count as f64 / pagination.items_per_page as f64).ceil() as i64;
+        let total_pages = if pages < 1 { 1 } else { pages };
+
         Self {
             data,
             pagination,
-            items_on_page_count,
+            total_pages: total_pages as usize,
         }
     }
 }

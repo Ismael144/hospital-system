@@ -1,10 +1,11 @@
 use super::{patient::Patient, Pagination, QueryResult};
+use crate::impls::serde_impls::{option_bigdecimal_serialize, option_uuid_serialize, uuid_serialize};
 use crate::schema::visits;
 use bigdecimal::BigDecimal;
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
-use serde::{Serialize, Deserialize};
-use crate::impls::serde_impls::option_bigdecimal_serialize;
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, diesel_derive_enum::DbEnum, Serialize, Deserialize)]
 #[ExistingTypePath = "crate::schema::sql_types::VisitStatus"]
@@ -17,13 +18,16 @@ pub enum VisitStatus {
     NoShow,
 }
 
-#[derive(Debug, Clone, Queryable, Identifiable, Associations, Selectable, Serialize, Deserialize)]
+#[derive(
+    Debug, Clone, Queryable, Identifiable, Associations, Selectable, Serialize, Deserialize,
+)]
 #[diesel(table_name = visits, primary_key(visit_id), belongs_to(Patient))]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct Visit {
-    #[serde(rename = "id")]
-    pub visit_id: i32,
-    pub patient_id: Option<i32>,
+    #[serde(rename = "id", with = "uuid_serialize")]
+    pub visit_id: Uuid,
+    #[serde(with = "option_uuid_serialize")]
+    pub patient_id: Option<Uuid>,
     pub visit_date: Option<DateTime<Utc>>,
     pub status: VisitStatus,
     pub complaint: Option<String>,
@@ -35,13 +39,15 @@ pub struct Visit {
     pub updated_at: Option<DateTime<Utc>>,
 }
 
-#[derive(Insertable, AsChangeset)]
+#[derive(Insertable, AsChangeset, Deserialize)]
 #[diesel(table_name = visits)]
 pub struct NewVisit {
-    pub patient_id: Option<i32>,
+    #[serde(with = "option_uuid_serialize")]
+    pub patient_id: Option<Uuid>,
     pub visit_date: Option<DateTime<Utc>>,
     pub status: VisitStatus,
     pub complaint: Option<String>,
+    #[serde(with = "option_bigdecimal_serialize")]
     pub total_charges: Option<BigDecimal>,
     pub is_discharged: Option<bool>,
     pub discharge_date: Option<DateTime<Utc>>,

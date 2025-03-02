@@ -11,6 +11,7 @@ use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData, 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::env;
+use uuid::Uuid;
 use validator::Validate;
 
 const TOKEN_EXPIRATION_HOURS: i64 = 1;
@@ -18,7 +19,8 @@ const TOKEN_EXPIRATION_HOURS: i64 = 1;
 /// Claims struct for JWT implementation
 #[derive(Serialize, Deserialize)]
 pub struct Claims {
-    pub sub: i32,
+    #[serde(with = "crate::impls::serde_impls::uuid_serialize")]
+    pub sub: Uuid,
     pub exp: i64,
     pub role: UserRole,
     pub iat: i64,

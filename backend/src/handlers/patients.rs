@@ -7,7 +7,6 @@ use crate::models::{
     patient::{NewPatient, Patient, PatientType},
     user::UserRole,
 };
-use serde_json::json; 
 use crate::{db::connection::DBService, error_archive::ErrorArchive};
 use actix_multipart::Multipart;
 use actix_web::{
@@ -15,6 +14,7 @@ use actix_web::{
     web::{self, ServiceConfig},
     HttpResponse,
 };
+use uuid::Uuid; 
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
@@ -189,14 +189,16 @@ async fn create_patient(db_service: web::Data<DBService>, mut payload: Multipart
 #[delete("/{id}")]
 async fn delete_patient(
     db_service: web::Data<DBService>,
-    patient_id: web::Path<i32>,
+    patient_id: web::Path<String>,
 ) -> HandlerResult {
     let db_conn = &mut db_service
         .pool
         .get()
         .map_err(|e| ErrorArchive::DatabaseError(e.to_string()))?;
 
-    PatientController::delete_patient(db_conn, *patient_id)
+    let patient_id = Uuid::parse_str(&patient_id.into_inner()).unwrap();
+
+    PatientController::delete_patient(db_conn, patient_id)
         .await
         .map_err(|_| ErrorArchive::InternalServerError)?;
 
@@ -211,7 +213,7 @@ async fn delete_patient(
 #[get("{id}")]
 async fn single_patient(
     db_service: web::Data<DBService>,
-    patient_id: web::Path<i32>,
+    patient_id: web::Path<String>,
 ) -> HandlerResult {
     // Get database connection
     let db_conn = &mut db_service
@@ -220,7 +222,7 @@ async fn single_patient(
         .map_err(|_| ErrorArchive::InternalServerError)?;
 
     // Get single patient
-    let patient_id = patient_id.into_inner();
+    let patient_id = Uuid::parse_str(&patient_id.into_inner()).unwrap();
 
     let patient = Patient::get_patient_by_id(db_conn, patient_id)
         .await

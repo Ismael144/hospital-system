@@ -17,7 +17,6 @@ type ControllerResult<T> = Result<T, ErrorArchive>;
 // This result type will be used for field validations
 type ValidationControllerResult<T> = Result<T, HashMap<String, String>>;
 
-
 pub fn create_model_validate(creation_model: &impl Validate) -> ValidationControllerResult<()> {
     let mut error_hashmap: HashMap<String, String> = HashMap::new();
 

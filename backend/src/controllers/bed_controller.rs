@@ -3,6 +3,8 @@ use crate::models::bed::{Bed, NewBed};
 use diesel::PgConnection;
 use std::collections::HashMap;
 use crate::error_archive::ErrorArchive; 
+use uuid::Uuid; 
+
 pub struct BedController;
 
 impl Controller for BedController {}
@@ -45,7 +47,7 @@ impl BedController {
     /// Update bed by id
     pub async fn update_bed(
         db_conn: &mut PgConnection,
-        bed_id: i32,
+        bed_id: Uuid,
         update_bed: NewBed,
     ) -> ValidationControllerResult<Bed> {
         // Do validations for bed number and ward
@@ -81,9 +83,9 @@ impl BedController {
     }
 
     /// Delete bed record
-    pub async fn delete_bed(db_conn: &mut PgConnection, bed_id: i32) -> ControllerResult<()> {
+    pub async fn delete_bed(db_conn: &mut PgConnection, bed_id: Uuid) -> ControllerResult<()> {
         match Bed::delete_bed(db_conn, bed_id).await {
-            Ok(deleted_bed) => Ok(()),  
+            Ok(_) => Ok(()),  
             Err(_) => Err(ErrorArchive::NotFound)
         }
     }

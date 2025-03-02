@@ -149,3 +149,54 @@ pub mod option_naive_date_time_serialize {
         }
     }
 }
+
+pub mod uuid_serialize {
+    use serde::{self, Deserializer, Serializer};
+    use uuid::Uuid;
+
+    // Serialize our Uuid
+    pub fn serialize<S>(uuid: &Uuid, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&uuid.to_string())
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Uuid, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s: String = serde::Deserialize::deserialize(deserializer)?;
+        Uuid::parse_str(&s).map_err(serde::de::Error::custom)
+    }
+}
+
+pub mod option_uuid_serialize {
+    use serde::{self, Deserializer, Serializer, Deserialize};
+    use uuid::Uuid;
+
+    // Serialize Option<Uuid> to either string or null
+    pub fn serialize<S>(uuid: &Option<Uuid>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match uuid {
+            Some(u) => serializer.serialize_some(&u.to_string()),
+            None => serializer.serialize_none(),
+        }
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<Uuid>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let option: Option<String> = Option::deserialize(deserializer)?;
+
+        match option {
+            Some(s) => Uuid::parse_str(&s)
+                .map(Some)
+                .map_err(serde::de::Error::custom),
+            None => Ok(None),
+        }
+    }
+}

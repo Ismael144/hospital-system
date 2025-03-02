@@ -1,7 +1,6 @@
-use tracing::level_filters::LevelFilter;
-use tracing_subscriber::{fmt, EnvFilter};
 use actix_cors::Cors;
 use actix_web::http;
+use tracing_subscriber::EnvFilter;
 
 /// Configuration of tracing for logging
 pub fn init_tracing() {

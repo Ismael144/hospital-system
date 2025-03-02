@@ -11,6 +11,7 @@ use actix_web::{delete, get, post};
 use actix_web::{web, HttpResponse};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use uuid::Uuid; 
 
 // Handling user avatar upload
 #[derive(Serialize, Deserialize, Debug)]
@@ -54,7 +55,7 @@ pub async fn get_all_users(db_service: web::Data<DBService>) -> HandlerResult {
 #[get("{id}")]
 pub async fn select_single_user(
     db_service: web::Data<DBService>,
-    user_id: web::Path<i32>,
+    user_id: web::Path<String>,
 ) -> HandlerResult {
     let db_conn = &mut db_service
         .pool
@@ -62,7 +63,7 @@ pub async fn select_single_user(
         .map_err(|e| ErrorArchive::DatabaseError(e.to_string()))?;
 
     // Get id passed in by user
-    let user_id = user_id.into_inner();
+    let user_id = Uuid::parse_str(&user_id.into_inner()).unwrap();
 
     let user = User::get_user_by_id(db_conn, user_id)
         .await
@@ -82,14 +83,14 @@ pub async fn users_paginated(
         .map_err(|e| ErrorArchive::DatabaseError(e.to_string()))?;
 
     let pagination = pagination_path.into_inner();
-    let paginated_users = User::select_paginated(db_conn, pagination.clone()).await?;
-    let items_on_page_count = paginated_users.len();
+    let paginated_users = User::paginate(db_conn, pagination.clone()).await?;
+    let row_count = paginated_users.len();
 
     Ok(
         HttpResponse::Ok().json(PaginationResponse::<Vec<User>>::new(
             paginated_users,
             pagination,
-            items_on_page_count,
+            row_count,
         )),
     )
 }
@@ -117,9 +118,9 @@ pub async fn signup_user(
 #[delete("{user_id}")]
 pub async fn delete_all_users(
     db_service: web::Data<DBService>,
-    user_id_path: web::Path<i32>,
+    user_id_path: web::Path<String>,
 ) -> HandlerResult {
-    let user_id = user_id_path.into_inner();
+    let user_id = Uuid::parse_str(&user_id_path.into_inner()).unwrap();
 
     let db_service = &mut db_service
         .pool

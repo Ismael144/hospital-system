@@ -2,13 +2,17 @@ use super::visit::Visit;
 use super::Pagination;
 use super::QueryResult;
 use crate::field_validations::{is_empty, validate_phone_number};
+use crate::impls::serde_impls::{option_uuid_serialize, uuid_serialize};
 use crate::schema::patients;
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 use validator::Validate;
 
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, diesel_derive_enum::DbEnum, Serialize, Deserialize)]
+#[derive(
+    Debug, Default, Clone, Copy, PartialEq, Eq, diesel_derive_enum::DbEnum, Serialize, Deserialize,
+)]
 #[ExistingTypePath = "crate::schema::sql_types::PatientType"]
 pub enum PatientType {
     #[default]
@@ -21,18 +25,19 @@ pub enum PatientType {
 #[diesel(table_name = patients, check_for_backend(diesel::pg::Pg))]
 #[diesel(primary_key(patient_id), belongs_to(User, foreign_key = registered_by))]
 pub struct Patient {
-    #[serde(rename = "id")]
-    pub patient_id: i32,
+    #[serde(rename = "id", with = "uuid_serialize")]
+    pub patient_id: Uuid,
     pub name: String,
     pub nin: Option<String>,
     pub age: Option<i32>,
     pub gender: Option<String>,
     pub patient_type: PatientType,
     pub phone: Option<String>,
-    pub profile_photo: Option<String>, 
+    pub profile_photo: Option<String>,
     pub address: Option<String>,
     pub emergency_phone: Option<String>,
-    pub registered_by: Option<i32>,
+    #[serde(with = "option_uuid_serialize")]
+    pub registered_by: Option<Uuid>,
     #[serde(skip_serializing)]
     pub registered_at: Option<NaiveDateTime>,
     #[serde(skip_serializing)]
@@ -74,7 +79,8 @@ pub struct NewPatient {
         custom(function = "validate_phone_number")
     )]
     pub emergency_phone: Option<String>,
-    pub registered_by: Option<i32>,
+    #[serde(with = "option_uuid_serialize")]
+    pub registered_by: Option<Uuid>,
 }
 
 #[derive(Serialize, Debug)]
@@ -101,7 +107,10 @@ impl Patient {
     }
 
     /// Fetch single patient by id
-    pub async fn get_patient_by_id(db_conn: &mut PgConnection, patient_id: i32) -> QueryResult<Patient> {
+    pub async fn get_patient_by_id(
+        db_conn: &mut PgConnection,
+        patient_id: Uuid,
+    ) -> QueryResult<Patient> {
         patients::table
             .filter(patients::dsl::patient_id.eq(patient_id))
             .get_result(db_conn)
@@ -121,7 +130,7 @@ impl Patient {
     /// Update a given patient and then return the updated record
     pub async fn update_by_id(
         db_conn: &mut PgConnection,
-        patient_id: i32,
+        patient_id: Uuid,
         new_patient: NewPatient,
     ) -> QueryResult<Patient> {
         diesel::update(patients::table.filter(patients::dsl::patient_id.eq(patient_id)))
@@ -131,7 +140,10 @@ impl Patient {
     }
 
     /// Delete a given patient and returning the deleted patient
-    pub async fn delete_by_id(db_conn: &mut PgConnection, patient_id: i32) -> QueryResult<Patient> {
+    pub async fn delete_by_id(
+        db_conn: &mut PgConnection,
+        patient_id: Uuid,
+    ) -> QueryResult<Patient> {
         diesel::delete(patients::table.filter(patients::dsl::patient_id.eq(patient_id)))
             .returning(Patient::as_returning())
             .get_result(db_conn)
@@ -185,5 +197,5 @@ impl Patient {
             .collect::<Vec<PatientWithVisits>>();
 
         Ok(visits_per_patient)
-    } 
+    }
 }

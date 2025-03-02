@@ -4,16 +4,17 @@ use crate::auth::middleware::AuthMiddleware;
 use crate::controllers::bed_controller::BedController;
 use crate::db::connection::DBService;
 use crate::error_archive::ErrorArchive;
-use crate::models::Pagination;
 use crate::models::{
     bed::{Bed, NewBed},
     user::UserRole,
 };
+use crate::models::{Pagination, PaginationResponse};
 use actix_web::{
     delete, get, post, put,
     web::{self, ServiceConfig},
     HttpResponse,
 };
+use uuid::Uuid;
 
 pub fn config(cfg: &mut ServiceConfig) {
     cfg.service(
@@ -22,7 +23,8 @@ pub fn config(cfg: &mut ServiceConfig) {
             .service(paginated_beds)
             .service(create_bed)
             .service(update_bed)
-            .service(fetch_bed_by_id),
+            .service(fetch_bed_by_id)
+            .service(delete_bed),
     );
 }
 
@@ -37,15 +39,19 @@ pub async fn paginated_beds(
         .map_err(|_| ErrorArchive::InternalServerError)?;
     let pagination = pagination.into_inner();
 
-    Ok(HttpResponse::Ok().json(APIResponse::<Vec<Bed>> {
+    Ok(HttpResponse::Ok().json(APIResponse::<PaginationResponse<Vec<Bed>>> {
         status_code: 200,
         errors: None,
         success: true,
-        response: Some(
-            Bed::select_paginated(db_conn, pagination)
+        response: Some(PaginationResponse::<Vec<Bed>>::new(
+            Bed::paginate(db_conn, pagination.clone())
                 .await
                 .map_err(|_| ErrorArchive::InternalServerError)?,
-        ),
+            pagination,
+            Bed::row_count(db_conn)
+                .await
+                .map_err(|_| ErrorArchive::InternalServerError)? as usize,
+        )),
     }))
 }
 
@@ -79,7 +85,7 @@ pub async fn create_bed(
 #[put("{id}")]
 pub async fn update_bed(
     db_service: web::Data<DBService>,
-    bed_id: web::Path<i32>,
+    bed_id: web::Path<String>,
     update_bed: web::Json<NewBed>,
 ) -> HandlerResult {
     // Initialize database
@@ -89,7 +95,10 @@ pub async fn update_bed(
         .map_err(|_| ErrorArchive::InternalServerError)?;
 
     // Extracting the
-    let (update_bed, bed_id) = (update_bed.into_inner(), bed_id.into_inner());
+    let (update_bed, bed_id) = (
+        update_bed.into_inner(),
+        Uuid::parse_str(&bed_id.into_inner()).unwrap(),
+    );
 
     // Update the bed here
     match BedController::update_bed(db_conn, bed_id, update_bed).await {
@@ -111,7 +120,7 @@ pub async fn update_bed(
 #[get("{id}")]
 pub async fn fetch_bed_by_id(
     db_service: web::Data<DBService>,
-    bed_id: web::Path<i32>,
+    bed_id: web::Path<String>,
 ) -> HandlerResult {
     // Extract db connection
     let db_conn = &mut db_service
@@ -120,7 +129,7 @@ pub async fn fetch_bed_by_id(
         .map_err(|_| ErrorArchive::InternalServerError)?;
 
     // Extract bed id
-    let bed_id: i32 = bed_id.into_inner();
+    let bed_id = Uuid::parse_str(&bed_id.into_inner()).unwrap();
 
     match Bed::get_by_id(db_conn, bed_id)
         .await
@@ -136,23 +145,27 @@ pub async fn fetch_bed_by_id(
     }
 }
 
-pub async fn delete_bed(db_service: web::Data<DBService>, bed_id: web::Path<i32>) -> HandlerResult {
+#[delete("{bed_id}")]
+pub async fn delete_bed(
+    db_service: web::Data<DBService>,
+    bed_id: web::Path<String>,
+) -> HandlerResult {
     // Extract bed id
     let (db_conn, bed_id) = (
         &mut db_service
             .pool
             .get()
             .map_err(|_| ErrorArchive::InternalServerError)?,
-        bed_id.into_inner(),
+        Uuid::parse_str(&bed_id.into_inner()).unwrap(),
     );
 
     // Delete bed from db
-    let deleted_bed = BedController::delete_bed(db_conn, bed_id).await?;
+    let _ = BedController::delete_bed(db_conn, bed_id).await?;
 
     Ok(HttpResponse::Ok().json(APIResponse::<String> {
-        status_code: 200, 
-        errors: None, 
-        response: Some(String::from("success")), 
+        status_code: 200,
+        errors: None,
+        response: Some(String::from("success")),
         success: true,
     }))
 }

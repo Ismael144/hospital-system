@@ -3,6 +3,7 @@ use crate::error_archive::ErrorArchive;
 use crate::models::patient::{NewPatient, Patient};
 use diesel::PgConnection;
 use std::collections::HashMap;
+use uuid::Uuid;
 
 pub struct PatientController;
 
@@ -63,7 +64,7 @@ impl PatientController {
 
     pub async fn delete_patient(
         db_conn: &mut PgConnection,
-        patient_id: i32,
+        patient_id: Uuid,
     ) -> ControllerResult<Patient> {
         let deleted_patient = Patient::delete_by_id(db_conn, patient_id).await;
 
