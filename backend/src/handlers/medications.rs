@@ -11,13 +11,16 @@ use crate::{
     },
 };
 use actix_web::{delete, get, post, put, web, HttpResponse};
+use uuid::Uuid;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("medications")
             .wrap(AuthMiddleware::new(vec![UserRole::Admin, UserRole::Nurse]))
             .service(medication_paginated)
-            .service(create_medication),
+            .service(create_medication)
+            .service(get_medication_by_id)
+            .service(delete_medication),
     );
 }
 
@@ -68,13 +71,13 @@ pub async fn create_medication(
     new_medication: web::Json<NewMedication>,
 ) -> HandlerResult {
     // Extract db connection
-    let db_conn = &mut db_service
-        .pool
-        .get()
-        .map_err(|e| ErrorArchive::DatabaseError(e.to_string()))?;
-
-    // Extracting out the new medication data
-    let new_medication = new_medication.into_inner();
+    let (db_conn, new_medication) = (
+        &mut db_service
+            .pool
+            .get()
+            .map_err(|e| ErrorArchive::DatabaseError(e.to_string()))?,
+        new_medication.into_inner(),
+    );
 
     match MedicationController::create_medication(db_conn, new_medication).await {
         Ok(medication) => Ok(HttpResponse::Created().json(APIResponse::<Medication> {
@@ -89,5 +92,62 @@ pub async fn create_medication(
             success: false,
             results: None,
         })),
+    }
+}
+
+#[delete("")]
+pub async fn delete_medication(
+    db_service: web::Data<DBService>,
+    medication_id: web::Path<String>,
+) -> HandlerResult {
+    // Delete functionality here
+    // Extract db connection
+    let (db_conn, medication_id) = (
+        &mut db_service
+            .pool
+            .get()
+            .map_err(|e| ErrorArchive::DatabaseError(e.to_string()))?,
+        Uuid::parse_str(&medication_id.into_inner()).unwrap(),
+    );
+
+    // Delete functionality here
+    let medication = MedicationController::delete_medication(db_conn, medication_id).await?;
+
+    Ok(HttpResponse::Ok().json(APIResponse::<Medication> {
+        success: true,
+        status_code: 200,
+        results: Some(medication),
+        errors: None,
+    }))
+}
+
+#[get("{id}")]
+pub async fn get_medication_by_id(
+    db_service: web::Data<DBService>,
+    medication_id: web::Path<String>,
+) -> HandlerResult {
+    // Extracting db connection and medication id
+    let (db_conn, medication_id) = (
+        &mut db_service
+            .pool
+            .get()
+            .map_err(|e| ErrorArchive::DatabaseError(e.to_string()))?,
+        Uuid::parse_str(&medication_id.into_inner()).unwrap(),
+    );
+
+    match Medication::get_medication_by_id(db_conn, medication_id)
+        .await
+        .map_err(|e| ErrorArchive::DatabaseError(e.to_string()))?
+    {
+        Some(medication) => Ok(HttpResponse::Ok().json(APIResponse::<Medication> {
+            status_code: 200,
+            success: true,
+            errors: None,
+            results: Some(medication),
+        })),
+        None => {
+            info!("An error occured!");
+            Err(ErrorArchive::NotFound)
+        }
     }
 }

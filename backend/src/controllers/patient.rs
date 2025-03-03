@@ -1,4 +1,4 @@
-use super::{new_model_validate, ControllerResult, ValidationControllerResult, Controller};
+use super::{new_model_validate, Controller, ControllerResult, ValidationControllerResult};
 use crate::error_archive::ErrorArchive;
 use crate::models::patient::{NewPatient, Patient};
 use diesel::PgConnection;
@@ -66,11 +66,8 @@ impl PatientController {
         db_conn: &mut PgConnection,
         patient_id: Uuid,
     ) -> ControllerResult<Patient> {
-        let deleted_patient = Patient::delete_by_id(db_conn, patient_id).await;
-
-        match deleted_patient {
-            Ok(patient) => Ok(patient),
-            Err(_) => Err(ErrorArchive::NotFound),
-        }
+        Patient::delete_by_id(db_conn, patient_id)
+            .await
+            .map_err(|_| ErrorArchive::NotFound)
     }
 }

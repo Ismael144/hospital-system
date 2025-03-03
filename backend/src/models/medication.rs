@@ -45,7 +45,7 @@ impl Medication {
     pub async fn new(
         db_conn: &mut PgConnection,
         new_medication: NewMedication,
-    ) -> QueryResult<Medication> {
+    ) -> QueryResult<Self> {
         diesel::insert_into(medications::table)
             .values(new_medication)
             .returning(Medication::as_returning())
@@ -68,11 +68,22 @@ impl Medication {
         medications::table.count().get_result::<i64>(db_conn)
     }
 
+    /// Select single medication by id from database
+    pub async fn get_medication_by_id(
+        db_conn: &mut PgConnection,
+        medication_id: Uuid,
+    ) -> QueryResult<Option<Self>> {
+        medications::table
+            .filter(medications::dsl::medication_id.eq(medication_id))
+            .get_result::<Self>(db_conn)
+            .optional()
+    }
+
     /// Delete medication from database
     pub async fn delete_medication(
         db_conn: &mut PgConnection,
         medication_id: Uuid,
-    ) -> QueryResult<Medication> {
+    ) -> QueryResult<Self> {
         diesel::delete(medications::table)
             .filter(medications::dsl::medication_id.eq(medication_id))
             .returning(Medication::as_returning())
@@ -84,7 +95,7 @@ impl Medication {
         db_conn: &mut PgConnection,
         medication_id: Uuid,
         update_medication: NewMedication,
-    ) -> QueryResult<Medication> {
+    ) -> QueryResult<Self> {
         diesel::update(medications::table.filter(medications::dsl::medication_id.eq(medication_id)))
             .set(update_medication)
             .returning(Medication::as_returning())
