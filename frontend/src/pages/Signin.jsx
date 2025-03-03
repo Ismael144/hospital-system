@@ -18,10 +18,9 @@ const Signin = () => {
   }
 
   const handleSubmit = async (e) => {
-    'use server'
     e.preventDefault()
+    
     setIsLoading(true)
-
     const formData = new FormData(e.target)
     try {
 
@@ -34,14 +33,14 @@ const Signin = () => {
       setIsLoading(false)
 
       // Store token
-      localStorage.setItem("access_token", request?.data.response.token);
+      localStorage.setItem("access_token", request?.data.results.token);
 
       // Navigate to home page
       navigate("/")
     } catch (e) {
       setIsLoading(false)
       setFormErrorResponse(e?.response?.data)
-      console.log(e?.response)
+      console.log(e)
     }
   }
 

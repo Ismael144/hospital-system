@@ -16,6 +16,7 @@ const BedIndex = () => {
 
   useEffect(() => {
     fetchData(currentPage, rowsPerPage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, rowsPerPage]);
 
   const fetchData = async (page, limit) => {
@@ -31,20 +32,31 @@ const BedIndex = () => {
           },
         }
       );
-      const beds = response.data.response;
-      const totalRecords = response.data.total_records || 0;
+      // API response structure:
+      // {
+      //   status: 200,
+      //   success: true,
+      //   errors: null,
+      //   response: {
+      //     data: [ ... ],
+      //     pagination: { page: X, items_per_page: Y },
+      //     total_pages: Z
+      //   }
+      // }
+      const bedResponse = response.data.results;
+      const beds = bedResponse.data;
+      const { items_per_page } = bedResponse.pagination;
+      const totalPages = bedResponse.total_pages;
+      const totalRecords = totalPages * items_per_page; // total count of records
+      setTotalRows(totalRecords);
 
-      // If the current page returns no items and we're not on the first page,
-      // adjust the page to the last available page.
+      // If no data and we're not on page 1, adjust to the last available page.
       if (beds.length === 0 && page > 1) {
-        const lastPage = Math.ceil(totalRecords / limit) || 1;
-        setCurrentPage(lastPage);
-        fetchData(lastPage, limit);
+        setCurrentPage(totalPages);
+        fetchData(totalPages, limit);
         return;
       }
-
       setData(beds);
-      setTotalRows(totalRecords);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -53,13 +65,8 @@ const BedIndex = () => {
   };
 
   const handlePageChange = (page) => {
-    // Prevent going beyond the last page.
-    const lastPage = Math.ceil(totalRows / rowsPerPage);
-    if (page > lastPage) {
-      setCurrentPage(lastPage);
-    } else {
-      setCurrentPage(page);
-    }
+    const lastPage = Math.ceil(totalRows / rowsPerPage) || 1;
+    setCurrentPage(page > lastPage ? lastPage : page);
   };
 
   const handleRowsPerPageChange = (newRowsPerPage, page) => {
@@ -76,12 +83,48 @@ const BedIndex = () => {
     )
   );
 
+  const handleDelete = async (bedId) => {
+    const accessToken = localStorage.getItem("access_token");
+    try {
+      // Get bed details for confirmation
+      const response = await axios.get(`http://localhost:8000/api/beds/${bedId}`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      // Access the single bed details from response.data.results
+      const bedData = response.data.results;
+      const isDelete = window.confirm(
+        `Are you sure you want to delete 'Bed No.${bedData.bed_number}', Ward: ${bedData.ward}?`
+      );
+      if (isDelete) {
+        const deleteResponse = await axios.delete(`http://localhost:8000/api/beds/${bedId}`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        // Check if deletion was successful. Adjust this check if your API returns a different structure.
+        if (deleteResponse.data.status === 200) {
+          alert("Successfully deleted...");
+          fetchData(currentPage, rowsPerPage);
+        } else {
+          alert("Deletion failed.");
+        }
+      }
+    } catch (error) {
+      console.error("Error during deletion:", error);
+      alert("Error deleting bed.");
+    }
+  };
+
   const columns = [
     {
       name: "ID",
       selector: (row) => row.id,
       sortable: true,
-      width: "70px",
+      width: "100px",
     },
     {
       name: "Bed Number",
@@ -118,10 +161,13 @@ const BedIndex = () => {
       name: "Action",
       cell: (row) => (
         <div className="d-flex">
-          <NavLink
-            to={`/beds/${row.id}`}
-            className="btn btn-primary btn-sm me-2"
+          <button
+            className="btn btn-danger btn-sm me-2"
+            onClick={() => handleDelete(row.id)}
           >
+            <i className="fas fa-trash"></i>
+          </button>
+          <NavLink to={`/beds/${row.id}`} className="btn btn-primary btn-sm me-2">
             <i className="fas fa-eye"></i>
           </NavLink>
           <NavLink to={`/beds/${row.id}/edit`} className="btn btn-warning btn-sm">
@@ -131,6 +177,7 @@ const BedIndex = () => {
       ),
       ignoreRowClick: true,
       button: true,
+      width: "150px",
     },
   ];
 
@@ -211,7 +258,6 @@ const BedIndex = () => {
                     </div>
                   </div>
                 </div>
-
                 <DataTable
                   columns={columns}
                   data={filteredData}
@@ -223,10 +269,7 @@ const BedIndex = () => {
                   progressPending={loading}
                   progressComponent={
                     <div className="text-center my-3">
-                      <div
-                        className="spinner-border text-primary"
-                        role="status"
-                      >
+                      <div className="spinner-border text-primary" role="status">
                         <span className="visually-hidden">Loading...</span>
                       </div>
                       <div className="mt-2">Loading beds...</div>
@@ -235,7 +278,6 @@ const BedIndex = () => {
                   noDataComponent={
                     <div className="text-center my-4">
                       <p className="text-muted">No beds found</p>
-                      {filterText && <p>Try clearing your search filter</p>}
                     </div>
                   }
                   customStyles={customStyles}

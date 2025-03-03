@@ -6,7 +6,7 @@ import Sidebar from "../../components/Sidebar";
 import { NavLink } from "react-router-dom";
 import formatDate from "../../utils/dateFormatter";
 
-const PatientIndex = () => {
+const BedIndex = () => {
   const [data, setData] = useState([]);
   const [totalRows, setTotalRows] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -24,7 +24,7 @@ const PatientIndex = () => {
     const accessToken = localStorage.getItem("access_token");
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/patients?page=${page}&items_per_page=${limit}`,
+        `http://localhost:8000/api/medications?page=${page}&items_per_page=${limit}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -32,20 +32,22 @@ const PatientIndex = () => {
           },
         }
       );
-      const patientResponse = response.data.results;
-      const patients = patientResponse.data;
-      const { items_per_page } = patientResponse.pagination;
-      const totalPages = patientResponse.total_pages;
-      const totalRecords = totalPages * items_per_page; // compute total count
+
+      const medicationResponse = response.data.results;
+      console.log("Medication Results: ", medicationResponse)
+      const medications = medicationResponse.data;
+      const { items_per_page } = medicationResponse.pagination;
+      const totalPages = medicationResponse.total_pages;
+      const totalRecords = totalPages * items_per_page; // total count of records
       setTotalRows(totalRecords);
 
-      // If no data is returned on a non-first page, adjust to the last available page.
-      if (patients.length === 0 && page > 1) {
+      // If no data and we're not on page 1, adjust to the last available page.
+      if (medications.length === 0 && page > 1) {
         setCurrentPage(totalPages);
         fetchData(totalPages, limit);
         return;
       }
-      setData(patients);
+      setData(medications);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -72,50 +74,39 @@ const PatientIndex = () => {
     )
   );
 
-  const patientType = {
-    Inpatient: "In Patient",
-    Outpatient: "Out Patient",
-    Emergency: "Emergency",
-  };
-
-  const handleDelete = async (patientId) => {
+  const handleDelete = async (medicationId) => {
     const accessToken = localStorage.getItem("access_token");
     try {
-      // Fetch patient details for confirmation
-      const response = await axios.get(
-        `http://localhost:8000/api/patients/${patientId}`,
-        {
+      // Get bed details for confirmation
+      const response = await axios.get(`http://localhost:8000/api/beds/${medicationId}`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      // Access the single bed details from response.data.results
+      const medicationData = response.data.results;
+      const isDelete = window.confirm(
+        `Are you sure you want to delete '${medicationData.name}'?`
+      );
+      if (isDelete) {
+        const deleteResponse = await axios.delete(`http://localhost:8000/api/medications/${medicationId}`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
           },
-        }
-      );
-      const patientData = response.data.results;
-      const confirmDelete = window.confirm(
-        `Are you sure you want to delete '${patientData.name}'?`
-      );
-      if (confirmDelete) {
-        const deleteResponse = await axios.delete(
-          `http://localhost:8000/api/patients/${patientId}`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-        // Assuming your API returns a status code in deleteResponse.data.status
+        });
+        // Check if deletion was successful. Adjust this check if your API returns a different structure.
         if (deleteResponse.data.status === 200) {
-          alert("Successfully deleted.");
+          alert("Successfully deleted...");
           fetchData(currentPage, rowsPerPage);
         } else {
           alert("Deletion failed.");
         }
       }
     } catch (error) {
-      console.error("Error deleting patient:", error);
-      alert("Error deleting patient.");
+      console.error("Error during deletion:", error);
+      alert("Error deleting bed.");
     }
   };
 
@@ -124,38 +115,48 @@ const PatientIndex = () => {
       name: "ID",
       selector: (row) => row.id,
       sortable: true,
-      width: "80px",
+      width: "100px",
     },
     {
       name: "Name",
       selector: (row) => row.name,
       sortable: true,
-      grow: 2,
+      width: "160px",
     },
     {
-      name: "NIN",
-      selector: (row) => row.nin || "N/A",
+      name: "Description",
+      selector: (row) => row.description || "N/A",
       sortable: true,
     },
     {
-      name: "Age",
-      selector: (row) => row.age,
+      name: "Unit Price",
+      selector: (row) => `UGX ${row.unit_price}` || 0,
       sortable: true,
-      width: "80px",
+      width: "180px"
     },
     {
-      name: "Gender",
-      selector: (row) => row.gender || "N/A",
+      name: "Requires Prescription",
+      selector: (row) =>
+        row.requires_prescription ? (
+          <span className="badge bg-success">Yes</span>
+        ) : (
+          <span className="badge bg-danger">No</span>
+        ),
       sortable: true,
     },
     {
-      name: "Type",
-      selector: (row) => patientType[row.patient_type],
+      name: "Is Active",
+      selector: (row) =>
+        row.is_occupied ? (
+          <span className="badge bg-success">Yes</span>
+        ) : (
+          <span className="badge bg-danger">No</span>
+        ),
       sortable: true,
     },
     {
-      name: "Phone",
-      selector: (row) => row.phone || "N/A",
+      name: "Created At",
+      selector: (row) => formatDate(row.created_at),
       sortable: true,
     },
     {
@@ -168,16 +169,10 @@ const PatientIndex = () => {
           >
             <i className="fas fa-trash"></i>
           </button>
-          <NavLink
-            to={`/patients/${row.id}`}
-            className="btn btn-primary btn-sm me-2"
-          >
+          <NavLink to={`/beds/${row.id}`} className="btn btn-primary btn-sm me-2">
             <i className="fas fa-eye"></i>
           </NavLink>
-          <NavLink
-            to={`/patients/${row.id}/edit`}
-            className="btn btn-warning btn-sm"
-          >
+          <NavLink to={`/beds/${row.id}/edit`} className="btn btn-warning btn-sm">
             <i className="fas fa-pen"></i>
           </NavLink>
         </div>
@@ -235,9 +230,9 @@ const PatientIndex = () => {
           <div className="container mt-4">
             <div className="card">
               <div className="card-header bg-white d-flex justify-content-between align-items-center">
-                <h3 className="mb-0">Patients Directory</h3>
-                <NavLink to="/patients/create" className="btn btn-success">
-                  Add New Patient
+                <h3 className="mb-0">Medications Directory</h3>
+                <NavLink to="/beds/create" className="btn btn-success">
+                  Add New Medication
                 </NavLink>
               </div>
               <div className="card-body">
@@ -250,7 +245,7 @@ const PatientIndex = () => {
                       <input
                         type="text"
                         className="form-control"
-                        placeholder="Search patients..."
+                        placeholder="Search beds..."
                         value={filterText}
                         onChange={(e) => setFilterText(e.target.value)}
                       />
@@ -276,19 +271,15 @@ const PatientIndex = () => {
                   progressPending={loading}
                   progressComponent={
                     <div className="text-center my-3">
-                      <div
-                        className="spinner-border text-primary"
-                        role="status"
-                      >
+                      <div className="spinner-border text-primary" role="status">
                         <span className="visually-hidden">Loading...</span>
                       </div>
-                      <div className="mt-2">Loading patients...</div>
+                      <div className="mt-2">Loading medications...</div>
                     </div>
                   }
                   noDataComponent={
                     <div className="text-center my-4">
-                      <p className="text-muted">No patients found</p>
-                      {filterText && <p>Try clearing your search filter</p>}
+                      <p className="text-muted">No medications found</p>
                     </div>
                   }
                   customStyles={customStyles}
@@ -305,4 +296,4 @@ const PatientIndex = () => {
   );
 };
 
-export default PatientIndex;
+export default BedIndex;

@@ -1,4 +1,4 @@
-use super::{create_model_validate, Controller, ValidationControllerResult, ControllerResult};
+use super::{new_model_validate, Controller, ValidationControllerResult, ControllerResult};
 use crate::models::bed::{Bed, NewBed};
 use diesel::PgConnection;
 use std::collections::HashMap;
@@ -18,7 +18,7 @@ impl BedController {
     ) -> ValidationControllerResult<Bed> {
         // I will do some validations before creating a new bed
         // Do validations for bed number and ward
-        match create_model_validate(&new_bed) {
+        match new_model_validate(&new_bed) {
             Ok(_) => {
                 let mut error_hashmap = HashMap::<String, String>::new();
 
@@ -51,7 +51,7 @@ impl BedController {
         update_bed: NewBed,
     ) -> ValidationControllerResult<Bed> {
         // Do validations for bed number and ward
-        match create_model_validate(&update_bed) {
+        match new_model_validate(&update_bed) {
             Ok(_) => {
                 let mut error_hashmap = HashMap::<String, String>::new();
                 let current_updated_bed =

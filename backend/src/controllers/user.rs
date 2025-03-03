@@ -1,4 +1,4 @@
-use super::{create_model_validate, ValidationControllerResult, Controller};
+use super::{new_model_validate, ValidationControllerResult, Controller};
 use crate::models::user::{NewUser, User};
 use diesel::PgConnection;
 use std::collections::HashMap;
@@ -13,7 +13,7 @@ impl UserController {
         db_conn: &mut PgConnection,
         new_user: NewUser,
     ) -> ValidationControllerResult<User> {
-        return match create_model_validate(&new_user) {
+        return match new_model_validate(&new_user) {
             Ok(_) => {
                 // Initialize error_hashmap for backend database errors
                 let mut error_hashmap: HashMap<String, String> = HashMap::new();

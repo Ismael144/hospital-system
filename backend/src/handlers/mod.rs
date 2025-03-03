@@ -30,7 +30,7 @@ pub struct APIResponse<D: Serialize> {
     status_code: i32,
     success: bool,
     errors: Option<HashMap<String, String>>,
-    response: Option<D>,
+    results: Option<D>,
 }
 
 /// Base handler configuration
@@ -39,10 +39,11 @@ pub struct APIResponse<D: Serialize> {
 pub fn base_handler_service_config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("api")
-            .configure(users::config)
             .configure(auth::config)
-            .configure(patients::config)
             .configure(beds::config)
+            .configure(medications::config)
+            .configure(patients::config)
+            .configure(users::config)
             .configure(uploads::config),
     );
 }

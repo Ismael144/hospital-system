@@ -1,18 +1,16 @@
 use actix_cors::Cors;
 use actix_web::http;
-use tracing_subscriber::EnvFilter;
 
 /// Configuration of tracing for logging
 pub fn init_tracing() {
     // Initialize the tracing subscriber
-    std::env::set_var("RUST_LOG", "debug"); // Ensure logging is enabled
-    
     tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::new("actix_web=debug,diesel=debug,tracing_actix_web=debug,my_app=debug"))
         .with_target(true)
-        .with_level(true)
-        .with_file(true)
+        .with_thread_ids(true)
         .with_line_number(true)
+        .with_file(true)
+        .with_ansi(true)
+        .pretty()
         .init();
 
     tracing::info!("Logging initialized!");

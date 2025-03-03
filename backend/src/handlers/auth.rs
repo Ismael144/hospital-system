@@ -69,7 +69,7 @@ pub async fn signin(
                 status_code: 401,
                 success: false,
                 errors: Some(error_hashmap),
-                response: None,
+                results: None,
             }),
         );
     }
@@ -80,7 +80,7 @@ pub async fn signin(
         status_code: 200,
         success: true,
         errors: None,
-        response: Some(token_response),
+        results: Some(token_response),
     }))
 }
 
@@ -105,13 +105,13 @@ pub async fn signup(
             status_code: 200,
             success: false,
             errors: None,
-            response: Some(created_user),
+            results: Some(created_user),
         })),
         Err(errors) => Ok(HttpResponse::BadRequest().json(APIResponse::<User> {
             status_code: 400,
             success: false,
             errors: Some(errors),
-            response: None,
+            results: None,
         })),
     }
 }

@@ -9,7 +9,9 @@ import { AuthMiddleware } from './middleware/AuthMiddleware';
 // Patients Imports
 import { PatientCreate, PatientIndex, PatientDetail } from './pages/patients'
 // Bed Imports
-import { BedIndex, BedCreate, BedUpdate } from './pages/bed'
+import { BedIndex, BedCreate, BedUpdate, BedDetails } from './pages/bed'
+// Medication imports
+import { MedicationIndex, MedicationCreate, MedicationUpdate, MedicationDetails } from './pages/medications'
 
 function App() {
   return (
@@ -28,8 +30,15 @@ function App() {
               </Route>
               <Route path="/beds">
                 <Route path="" element={<BedIndex />} index />
+                <Route path=":id/" element={<BedDetails />} index />
                 <Route path="create" element={<BedCreate />} />
                 <Route path=":bedId/edit" element={<BedUpdate />} />
+              </Route>
+              <Route path="/medications">
+                <Route path="" element={<MedicationIndex />} index />
+                <Route path=":id/" element={<MedicationDetails />} index />
+                <Route path="create" element={<MedicationCreate />} />
+                <Route path=":medicationId/edit" element={<MedicationUpdate />} />
               </Route>
             </Route>
           </Routes>

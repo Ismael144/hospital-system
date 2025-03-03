@@ -1,7 +1,7 @@
 use super::APIResponse;
 use super::HandlerResult;
 use crate::auth::middleware::AuthMiddleware;
-use crate::controllers::bed_controller::BedController;
+use crate::controllers::bed::BedController;
 use crate::db::connection::DBService;
 use crate::error_archive::ErrorArchive;
 use crate::models::{
@@ -39,20 +39,22 @@ pub async fn paginated_beds(
         .map_err(|_| ErrorArchive::InternalServerError)?;
     let pagination = pagination.into_inner();
 
-    Ok(HttpResponse::Ok().json(APIResponse::<PaginationResponse<Vec<Bed>>> {
-        status_code: 200,
-        errors: None,
-        success: true,
-        response: Some(PaginationResponse::<Vec<Bed>>::new(
-            Bed::paginate(db_conn, pagination.clone())
-                .await
-                .map_err(|_| ErrorArchive::InternalServerError)?,
-            pagination,
-            Bed::row_count(db_conn)
-                .await
-                .map_err(|_| ErrorArchive::InternalServerError)? as usize,
-        )),
-    }))
+    Ok(
+        HttpResponse::Ok().json(APIResponse::<PaginationResponse<Vec<Bed>>> {
+            status_code: 200,
+            errors: None,
+            success: true,
+            results: Some(PaginationResponse::<Vec<Bed>>::new(
+                Bed::paginate(db_conn, pagination.clone())
+                    .await
+                    .map_err(|_| ErrorArchive::InternalServerError)?,
+                pagination,
+                Bed::row_count(db_conn)
+                    .await
+                    .map_err(|_| ErrorArchive::InternalServerError)?,
+            )),
+        }),
+    )
 }
 
 #[post("")]
@@ -70,13 +72,13 @@ pub async fn create_bed(
         Ok(bed) => Ok(HttpResponse::Ok().json(APIResponse::<Bed> {
             status_code: 200,
             errors: None,
-            response: Some(bed),
+            results: Some(bed),
             success: true,
         })),
         Err(errors) => Ok(HttpResponse::BadRequest().json(APIResponse::<Bed> {
             status_code: 400,
             errors: Some(errors),
-            response: None,
+            results: None,
             success: false,
         })),
     }
@@ -105,13 +107,13 @@ pub async fn update_bed(
         Ok(updated_bed) => Ok(HttpResponse::Ok().json(APIResponse::<Bed> {
             status_code: 200,
             success: true,
-            response: Some(updated_bed),
+            results: Some(updated_bed),
             errors: None,
         })),
         Err(errors) => Ok(HttpResponse::BadRequest().json(APIResponse::<Bed> {
             status_code: 400,
             success: false,
-            response: None,
+            results: None,
             errors: Some(errors),
         })),
     }
@@ -136,7 +138,7 @@ pub async fn fetch_bed_by_id(
         .map_err(|_| ErrorArchive::InternalServerError)?
     {
         Some(bed_record) => Ok(HttpResponse::Ok().json(APIResponse::<Bed> {
-            response: Some(bed_record),
+            results: Some(bed_record),
             errors: None,
             status_code: 200,
             success: true,
@@ -165,7 +167,7 @@ pub async fn delete_bed(
     Ok(HttpResponse::Ok().json(APIResponse::<String> {
         status_code: 200,
         errors: None,
-        response: Some(String::from("success")),
+        results: Some(String::from("success")),
         success: true,
     }))
 }

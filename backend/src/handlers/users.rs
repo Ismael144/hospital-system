@@ -84,7 +84,7 @@ pub async fn users_paginated(
 
     let pagination = pagination_path.into_inner();
     let paginated_users = User::paginate(db_conn, pagination.clone()).await?;
-    let row_count = paginated_users.len();
+    let row_count = paginated_users.len() as i64;
 
     Ok(
         HttpResponse::Ok().json(PaginationResponse::<Vec<User>>::new(

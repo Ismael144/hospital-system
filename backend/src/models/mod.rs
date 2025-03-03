@@ -11,8 +11,6 @@ pub mod triage_record;
 pub mod user;
 pub mod visit;
 
-use diesel::PgConnection;
-use futures::Future;
 use serde::{Deserialize, Serialize};
 
 /// A generic Diesel result where the `Err` variant comes from Diesel.
@@ -38,15 +36,21 @@ impl Pagination {
 
 /// Generic response for paginated data.
 #[derive(Serialize, Clone)]
-pub struct PaginationResponse<T> {
+pub struct PaginationResponse<T>
+where
+    T: Serialize,
+{
     pub data: T,
     pub pagination: Pagination,
-    pub total_pages: usize,
+    pub total_pages: i64,
 }
 
-impl<T> PaginationResponse<T> {
+impl<T> PaginationResponse<T>
+where
+    T: Serialize,
+{
     /// Creates a new pagination response.
-    pub fn new(data: T, pagination: Pagination, row_count: usize) -> Self {
+    pub fn new(data: T, pagination: Pagination, row_count: i64) -> Self {
         // Compute the total pages
         let pages = (row_count as f64 / pagination.items_per_page as f64).ceil() as i64;
         let total_pages = if pages < 1 { 1 } else { pages };
@@ -54,7 +58,7 @@ impl<T> PaginationResponse<T> {
         Self {
             data,
             pagination,
-            total_pages: total_pages as usize,
+            total_pages: total_pages as i64,
         }
     }
 }

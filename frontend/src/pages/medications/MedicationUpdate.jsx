@@ -6,7 +6,7 @@ import axios from 'axios'
 
 
 const BedUpdate = () => {
-    const { bedId } = useParams()
+    const { medicationId } = useParams()
     const [formInput, setFormInput] = useState({
         bed_number: '',
         ward: '',
@@ -36,7 +36,7 @@ const BedUpdate = () => {
             const accessToken = localStorage.getItem('access_token')
 
             try {
-                const response = await axios.get(`http://localhost:8000/api/beds/${bedId}`, {
+                const response = await axios.get(`http://localhost:8000/api/medications/${medicationId}`, {
                     headers: {
                         "Content-Type": 'application/json',
                         "Authorization": `Bearer ${accessToken}`
@@ -62,7 +62,7 @@ const BedUpdate = () => {
         try {
             const accessToken = localStorage.getItem('access_token')
 
-            const response = await axios.put(`http://localhost:8000/api/beds/${bedId}`, formInput, {
+            const response = await axios.put(`http://localhost:8000/api/beds/${medicationId}`, formInput, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${accessToken}`

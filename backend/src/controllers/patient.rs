@@ -1,4 +1,4 @@
-use super::{create_model_validate, ControllerResult, ValidationControllerResult, Controller};
+use super::{new_model_validate, ControllerResult, ValidationControllerResult, Controller};
 use crate::error_archive::ErrorArchive;
 use crate::models::patient::{NewPatient, Patient};
 use diesel::PgConnection;
@@ -15,7 +15,7 @@ impl PatientController {
         db_conn: &mut PgConnection,
         new_patient: NewPatient,
     ) -> ValidationControllerResult<Patient> {
-        match create_model_validate(&new_patient) {
+        match new_model_validate(&new_patient) {
             Ok(_) => {
                 // Hashmap for backend validation
                 let mut error_hashmap: HashMap<String, String> = HashMap::new();
