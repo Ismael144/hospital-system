@@ -32,3 +32,16 @@ pub struct DoctorConsultation {
     #[serde(with = "option_naive_date_time_serialize")]
     pub updated_at: Option<NaiveDateTime>,
 }
+
+impl DoctorConsultation {
+    // Retrieve single doctor consultation
+    pub async fn get_by_id(
+        db_conn: &mut PgConnection,
+        consultation_id: Uuid,
+    ) -> QueryResult<Option<Self>> {
+        doctor_consultations::table
+            .filter(doctor_consultations::dsl::consultation_id.eq(consultation_id))
+            .get_result::<Self>(db_conn)
+            .optional()
+    }
+}

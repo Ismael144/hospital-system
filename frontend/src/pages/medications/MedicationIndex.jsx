@@ -1,11 +1,13 @@
 import React from 'react';
 import RenderIndexPage from '../../components/RenderIndexPage';
 import formatDate from "../../utils/dateFormatter";
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import currencyFormatter from '../../utils/currencyFormatter';
 import axios from 'axios';
 
 const MedicationIndex = () => {
+  const navigate = useNavigate()
+  
   const handleDelete = async (itemId) => {
     const accessToken = localStorage.getItem("access_token");
     try {
@@ -31,7 +33,7 @@ const MedicationIndex = () => {
         // Check if deletion was successful. Adjust this check if your API returns a different structure.
         if (deleteResponse.data.status === 200) {
           alert("Successfully deleted...");
-          fetchData(currentPage, rowsPerPage);
+          navigate("/medications")
         } else {
           alert("Deletion failed.");
         }
@@ -79,7 +81,7 @@ const MedicationIndex = () => {
     {
       name: "Is Active",
       selector: (row) =>
-        row.is_occupied ? (
+        row.is_active ? (
           <span className="badge bg-success">Yes</span>
         ) : (
           <span className="badge bg-danger">No</span>
@@ -101,10 +103,10 @@ const MedicationIndex = () => {
           >
             <i className="fas fa-trash"></i>
           </button>
-          <NavLink to={`/beds/${row.id}`} className="btn btn-primary btn-sm me-2">
+          <NavLink to={`/medications/${row.id}`} className="btn btn-primary btn-sm me-2">
             <i className="fas fa-eye"></i>
           </NavLink>
-          <NavLink to={`/beds/${row.id}/edit`} className="btn btn-warning btn-sm">
+          <NavLink to={`/medications/${row.id}/edit`} className="btn btn-warning btn-sm">
             <i className="fas fa-pen"></i>
           </NavLink>
         </div>

@@ -5,15 +5,16 @@ import { NavLink, useNavigate, useParams } from 'react-router-dom'
 import axios from 'axios'
 
 
-const BedUpdate = () => {
+const MedicationUpdate = () => {
     const { medicationId } = useParams()
     const [formInput, setFormInput] = useState({
-        bed_number: '',
-        ward: '',
-        notes: '',
-        is_occupied: false,
+        name: '',
+        description: '',
+        unit_price: 0,
+        requires_prescription: false,
+        is_active: false,
     })
-    const [bedData, setBedData] = useState({})
+    const [medicationData, setMedicationData] = useState({})
     const [response, setResponse] = useState()
     const [isLoading, setIsLoading] = useState(false)
     const navigate = useNavigate()
@@ -31,8 +32,8 @@ const BedUpdate = () => {
 
     useEffect(() => {
         setIsLoading(true)
-        // Fetch the current bed id here 
-        const fetchBedData = async () => {
+        // Fetch the current medication id here 
+        const fetchMedicationData = async () => {
             const accessToken = localStorage.getItem('access_token')
 
             try {
@@ -42,8 +43,8 @@ const BedUpdate = () => {
                         "Authorization": `Bearer ${accessToken}`
                     }
                 })
-
-                setBedData(response.data.results)
+                console.log("Response Data: ", response.data.results)
+                setMedicationData(response.data.results)
                 setFormInput(response.data.results)
             } catch (err) {
                 // Redirect back to the base page
@@ -51,7 +52,7 @@ const BedUpdate = () => {
             }
         }
 
-        fetchBedData()
+        fetchMedicationData()
         setIsLoading(false)
     }, [])
 
@@ -62,7 +63,7 @@ const BedUpdate = () => {
         try {
             const accessToken = localStorage.getItem('access_token')
 
-            const response = await axios.put(`http://localhost:8000/api/beds/${medicationId}`, formInput, {
+            const response = await axios.put(`http://localhost:8000/api/medications/${medicationId}`, formInput, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${accessToken}`
@@ -71,9 +72,7 @@ const BedUpdate = () => {
 
             setResponse(response.response)
 
-            setTimeout(() => {}, 1000)
-
-            navigate("/beds")
+            navigate("/medications")
         } catch (e) {
             setResponse(e.response)
             console.log(e)
@@ -89,16 +88,16 @@ const BedUpdate = () => {
             <div className="content-wrapper">
                 <div className="container-full m-5" style={{ padding: 20 }}>
                     <div className="">
-                        <div class="content-header my-3">
-                            <div class="d-flex align-items-center">
-                                <div class="me-auto">
-                                    <h4 class="page-title">Bed Form</h4>
-                                    <div class="d-inline-block align-items-center">
+                        <div className="content-header my-3">
+                            <div className="d-flex align-items-center">
+                                <div className="me-auto">
+                                    <h4 className="page-title">Medication Form</h4>
+                                    <div className="d-inline-block align-items-center">
                                         <nav>
-                                            <ol class="breadcrumb">
-                                                <li class="breadcrumb-item"><a href="#"><i class="mdi mdi-home-outline"></i></a></li>
-                                                <li class="breadcrumb-item" aria-current="page">Beds</li>
-                                                <li class="breadcrumb-item active" aria-current="page">Bed's edit form</li>
+                                            <ol className="breadcrumb">
+                                                <li className="breadcrumb-item"><a href="#"><i className="mdi mdi-home-outline"></i></a></li>
+                                                <li className="breadcrumb-item" aria-current="page">Medications</li>
+                                                <li className="breadcrumb-item active" aria-current="page">Medication's edit form</li>
                                             </ol>
                                         </nav>
                                     </div>
@@ -110,51 +109,55 @@ const BedUpdate = () => {
                             <div className="card-header">
                                 <h4 className="card-title d-flex align-items-center gap-2">
                                     {isLoading ?
-                                    <div className="spinner-border text-primary"></div> : <></> }
-                                    Editing 'Bed No.{bedData.bed_number}'
+                                        <div className="spinner-border text-primary"></div> : <></>}
+                                    Editing Medication '{medicationData.name}'
                                 </h4>
                             </div>
                             <div className="card-body">
                                 {response?.status == 200 ?
                                     <div className="alert alert-success">
-                                        You successfully added a new bed
-                                    </div> : response?.status == 500 ? <span className="alert alert-danger">
-                                        An error occured while trying to process your request
-                                    </span> : response?.status == 400 ? <div className="alert alert-danger">
-                                        Please correct all errors inorder to continue
-                                    </div> : <></> }
-                                <form action method="post" onSubmit={handleSubmit}>
+                                        You successfully added a new medication
+                                    </div> : <></>}
+                                {response?.errors ? <div className="alert alert-danger">
+                                    Please correct all errors inorder to continue
+                                </div> : <></>}
+                                <form action method="post" encType='multipart/formdata' onSubmit={handleSubmit}>
                                     <div className="form-group-element my-2">
-                                        <label htmlFor="" className="form-label">Bed Number <span className="text-danger">*</span></label>
-                                        <input type="number" className="form-control" name="bed_number" placeholder="Enter bed number..." min={0} value={formInput.bed_number} onChange={handleChange} required />
+                                        <label htmlFor="" className="form-label">Name of medication <span className="text-danger">*</span></label>
+                                        <input type="text" className="form-control" name="name" placeholder="Enter medication's name..." onChange={handleChange} min={0} value={formInput.name} required />
                                         <div className="text-danger my-2">
-                                            {response?.data?.errors?.bed_number}
+                                            {response?.data?.errors?.name}
                                         </div>
                                     </div>
                                     <div className="form-group-element my-2 mt-3">
-                                        <label htmlFor="" className="form-label">Ward </label>
-                                        <input type="text" className="form-control" name="ward" placeholder="Enter the name of the ward..." value={formInput.ward} onChange={handleChange} required />
+                                        <label htmlFor="" className="form-label">Description </label>
+                                        <textarea name="description" className="form-control" rows={4} placeholder='Enter some notes here...' value={formInput.description} onChange={handleChange}></textarea>
                                         <span className="text-danger">
                                             {response?.data?.errors?.ward}
                                         </span>
                                     </div>
                                     <div className="form-group-element my-2 mt-3">
-                                        <label htmlFor="notes" className="form-label">Notes</label>
-                                        <textarea name="notes" className="form-control" rows={4} placeholder='Enter some notes here...' onChange={handleChange} value={formInput.notes}></textarea>
+                                        <label htmlFor="is_occupied" className="form-label">Unit Price</label>
+                                        <input type="number" name="unit_price" min={0} className="form-control" value={formInput.unit_price} />
                                         <span className="text-danger">
                                             {response?.data?.errors?.notes}
                                         </span>
                                     </div>
                                     <div className="form-group-element my-2 mt-3">
-                                        <input type="checkbox" name="is_occupied" id="is_occupied" className="form-check-input" onChange={handleChange} checked={formInput.is_occupied} />
-                                        <label htmlFor="is_occupied" className="form-label">Is Occupied</label>
+                                        <input type="checkbox" name="requires_prescription" id="requires_prescription" className="form-check-input" onChange={handleChange} checked={formInput.requires_prescription} />
+                                        <label htmlFor="requires_prescription" className="form-label">Requires Prescription</label>
+                                        <span className="text-danger"></span>
+                                    </div>
+                                    <div className="form-group-element my-2 mt-3">
+                                        <input type="checkbox" name="is_active" id="is_active" className="form-check-input" onChange={handleChange} checked={formInput.is_active} />
+                                        <label htmlFor="is_active" className="form-label">Is Active</label>
                                         <span className="text-danger"></span>
                                     </div>
                                     <div className="buttons my-2 mt-4 d-flex align-items-center gap-2 justify-content-end">
                                         <button className="btn btn-success" disabled={isLoading}>
-                                            {isLoading ? "Editing" : "Edit"}
+                                            {isLoading ? "Editing Medication" : "Edit Medication"}
                                         </button>
-                                        <NavLink to="/beds" className="btn btn-warning">
+                                        <NavLink to="/medications" className="btn btn-warning">
                                             Back
                                         </NavLink>
                                     </div>
@@ -168,4 +171,4 @@ const BedUpdate = () => {
     )
 }
 
-export default BedUpdate
+export default MedicationUpdate

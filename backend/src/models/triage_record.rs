@@ -3,6 +3,7 @@ use crate::impls::serde_impls::{
 };
 use crate::schema::triage_records;
 use bigdecimal::BigDecimal;
+use super::{visit::Visit, user::User};
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -60,6 +61,14 @@ pub struct NewTriageRecord {
     pub notes: Option<String>,
     #[serde(with = "option_bigdecimal_serialize")]
     pub charges: Option<BigDecimal>,
+}
+
+/// Will return data with full representations of visit and nurse data
+#[derive(Serialize)]
+pub struct TriageRecordVisitNurseRelationship {
+    pub visit: Option<Visit>, 
+    pub nurse: Option<User>, 
+    pub triage_record: TriageRecord
 }
 
 impl TriageRecord {

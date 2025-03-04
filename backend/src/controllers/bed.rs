@@ -1,9 +1,9 @@
-use super::{new_model_validate, Controller, ValidationControllerResult, ControllerResult};
+use super::{new_model_validate, Controller, ControllerResult, ValidationControllerResult};
+use crate::error_archive::ErrorArchive;
 use crate::models::bed::{Bed, NewBed};
 use diesel::PgConnection;
 use std::collections::HashMap;
-use crate::error_archive::ErrorArchive; 
-use uuid::Uuid; 
+use uuid::Uuid;
 
 pub struct BedController;
 
@@ -53,15 +53,20 @@ impl BedController {
         // Do validations for bed number and ward
         match new_model_validate(&update_bed) {
             Ok(_) => {
+                // Create an error_hashmap
                 let mut error_hashmap = HashMap::<String, String>::new();
                 let current_updated_bed =
-                    Bed::get_bed_by_bed_number(db_conn, update_bed.bed_number.clone()).await.unwrap();
+                    Bed::get_bed_by_bed_number(db_conn, update_bed.bed_number.clone())
+                        .await
+                        .unwrap();
 
                 // Do the validations here
                 if Bed::is_bed_number_unique(db_conn, &update_bed.bed_number)
                     .await
                     .unwrap()
-                    && current_updated_bed.bed_number != update_bed.bed_number.clone()
+                    && current_updated_bed
+                        .map(|bed| bed.bed_number != update_bed.bed_number.clone())
+                        .unwrap()
                 {
                     error_hashmap.insert(
                         "bed_number".to_string(),
@@ -85,8 +90,8 @@ impl BedController {
     /// Delete bed record
     pub async fn delete_bed(db_conn: &mut PgConnection, bed_id: Uuid) -> ControllerResult<()> {
         match Bed::delete_bed(db_conn, bed_id).await {
-            Ok(_) => Ok(()),  
-            Err(_) => Err(ErrorArchive::NotFound)
+            Ok(_) => Ok(()),
+            Err(_) => Err(ErrorArchive::NotFound),
         }
     }
 }

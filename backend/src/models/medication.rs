@@ -106,16 +106,10 @@ impl Medication {
     pub async fn check_given_name_existence(
         db_conn: &mut PgConnection,
         name: String,
-    ) -> QueryResult<bool> {
-        let result = medications::table
+    ) -> QueryResult<Option<Self>> {
+        medications::table
             .filter(medications::dsl::name.eq(name))
-            .count()
-            .get_result::<i64>(db_conn)?;
-
-        if result < 1i64 {
-            Ok(true)
-        } else {
-            Ok(false)
-        }
+            .get_result::<Self>(db_conn)
+            .optional()
     }
 }

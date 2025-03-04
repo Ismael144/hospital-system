@@ -1,4 +1,4 @@
-use super::{new_model_validate, ValidationControllerResult, Controller};
+use super::{new_model_validate, Controller, ValidationControllerResult};
 use crate::models::user::{NewUser, User};
 use diesel::PgConnection;
 use std::collections::HashMap;

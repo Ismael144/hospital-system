@@ -18,8 +18,9 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         web::scope("medications")
             .wrap(AuthMiddleware::new(vec![UserRole::Admin, UserRole::Nurse]))
             .service(medication_paginated)
-            .service(create_medication)
             .service(get_medication_by_id)
+            .service(create_medication)
+            .service(update_medication)
             .service(delete_medication),
     );
 }
@@ -95,7 +96,7 @@ pub async fn create_medication(
     }
 }
 
-#[delete("")]
+#[delete("{id}")]
 pub async fn delete_medication(
     db_service: web::Data<DBService>,
     medication_id: web::Path<String>,
@@ -145,9 +146,38 @@ pub async fn get_medication_by_id(
             errors: None,
             results: Some(medication),
         })),
-        None => {
-            info!("An error occured!");
-            Err(ErrorArchive::NotFound)
-        }
+        None => Err(ErrorArchive::NotFound),
+    }
+}
+
+#[put("{id}")]
+pub async fn update_medication(
+    db_service: web::Data<DBService>,
+    update_medication: web::Json<NewMedication>,
+    medication_id: web::Path<String>,
+) -> HandlerResult {
+    let (db_conn, update_medication, medication_id) = (
+        &mut db_service
+            .pool
+            .get()
+            .map_err(|e| ErrorArchive::DatabaseError(e.to_string()))?,
+        update_medication.into_inner(),
+        Uuid::parse_str(&medication_id.into_inner()).unwrap(),
+    );
+
+    // Do the update here
+    match MedicationController::update_medication(db_conn, update_medication, medication_id).await {
+        Ok(medication) => Ok(HttpResponse::Ok().json(APIResponse::<Medication> {
+            success: true,
+            status_code: 200,
+            errors: None,
+            results: Some(medication),
+        })),
+        Err(errors) => Ok(HttpResponse::BadRequest().json(APIResponse::<Medication> {
+            success: false,
+            status_code: 400,
+            errors: Some(errors),
+            results: None,
+        })),
     }
 }

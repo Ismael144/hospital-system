@@ -53,6 +53,13 @@ pub struct NewVisit {
     pub discharge_date: Option<DateTime<Utc>>,
 }
 
+/// This struct represents the structure of having full patient record and visit record
+#[derive(Serialize)]
+pub struct VisitWithPatient {
+    patient: Patient, 
+    visit: Visit
+}
+
 impl Visit {
     /// Creating a new visit
     pub async fn new(db_conn: &mut PgConnection, new_visit: NewVisit) -> QueryResult<Visit> {

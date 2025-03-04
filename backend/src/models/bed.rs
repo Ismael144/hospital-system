@@ -86,11 +86,12 @@ impl Bed {
     pub async fn get_bed_by_bed_number(
         db_conn: &mut PgConnection,
         bed_number: String,
-    ) -> QueryResult<Bed> {
+    ) -> QueryResult<Option<Self>> {
         beds::table
             .filter(beds::dsl::bed_number.eq(bed_number))
             .select(Bed::as_select())
             .get_result(db_conn)
+            .optional()
     }
 
     /// Will check whether a bed queryed by bed_number field exists
