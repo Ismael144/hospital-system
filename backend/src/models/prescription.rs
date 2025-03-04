@@ -33,7 +33,9 @@ pub struct NewPrescription {
     pub consultation_id: Option<Uuid>,
     #[serde(with = "option_uuid_serialize")]
     pub medication_id: Option<Uuid>,
+    #[validate(length(min = 2))]
     pub dosage: String,
+    #[validate(length(min = 2))]
     pub frequency: String,
     pub duration_days: i32,
     pub notes: Option<String>,
@@ -80,18 +82,17 @@ impl TryIntoWithConn<Vec<Prescription>> for Vec<PrescriptionWithConsultationAndM
         db_conn: &mut PgConnection,
         prescriptions_data: Vec<Prescription>,
     ) -> Result<Self, Self::Error> {
-        let mut results = Vec::with_capacity(prescriptions_data.len());
-
-        // Process each prescription at a time
-        for prescription in prescriptions_data {
-            // Awaiting each async conversion and push the result into results vec
-            let converted = <PrescriptionWithConsultationAndMedication as TryIntoWithConn<
-                Prescription,
-            >>::try_into_with_conn(db_conn, prescription)
-            .await?;
-
-            results.push(converted);
-        }
+        // Map through Vec<Prescription> to a Vec<PrescriptionWithConsultationAndMedication>
+        let results = prescriptions_data
+            .into_iter()
+            .map(|prescription| {
+                futures::executor::block_on(
+                        <PrescriptionWithConsultationAndMedication as TryIntoWithConn<
+                            Prescription,
+                        >>::try_into_with_conn(db_conn, prescription),
+                    ).unwrap()
+            })
+            .collect::<_>();
 
         Ok(results)
     }
@@ -110,9 +111,7 @@ impl Prescription {
     }
 
     /// Returns row count of the prescriptions table
-    pub async fn row_count(
-        db_conn: &mut PgConnection
-    ) -> QueryResult<i64> {
+    pub async fn row_count(db_conn: &mut PgConnection) -> QueryResult<i64> {
         prescriptions::table.count().get_result::<i64>(db_conn)
     }
 
@@ -131,7 +130,7 @@ impl Prescription {
         <Vec<PrescriptionWithConsultationAndMedication> as TryIntoWithConn<Vec<Self>>>::try_into_with_conn(db_conn, prescriptions_data).await
     }
 
-    /// Retrieve a prescription by prescription uuid, will return none if prescription is not found 
+    /// Retrieve a prescription by prescription uuid, will return none if prescription is not found
     pub async fn get_by_id(
         db_conn: &mut PgConnection,
         prescription_id: Uuid,
@@ -140,12 +139,42 @@ impl Prescription {
         let single_prescription = prescriptions::table
             .filter(prescriptions::dsl::prescription_id.eq(prescription_id))
             .get_result::<Self>(db_conn)
-            .optional().expect("Failed to retrieve item from database");
+            .optional()
+            .expect("Failed to retrieve item from database");
 
         // Convert our Prescription to PrescriptionWithConsultationAndMedication
         match single_prescription {
-        Some(prescription) => Ok(Some(<PrescriptionWithConsultationAndMedication as TryIntoWithConn<Self>>::try_into_with_conn(db_conn, prescription).await?)), 
-            None => Ok(None)
+            Some(prescription) => <PrescriptionWithConsultationAndMedication as TryIntoWithConn<
+                Self,
+            >>::try_into_with_conn(db_conn, prescription)
+            .await
+            .map(Some),
+            None => Ok(None),
         }
+    }
+
+    /// Insert a new prescription into database
+    pub async fn create_prescription(
+        db_conn: &mut PgConnection,
+        new_prescription: NewPrescription,
+    ) -> QueryResult<Self> {
+        diesel::insert_into(prescriptions::table)
+            .values(new_prescription)
+            .returning(Prescription::as_returning())
+            .get_result::<Self>(db_conn)
+    }
+
+    /// Update a given prescription by id
+    pub async fn update_prescription_by_id(
+        db_conn: &mut PgConnection,
+        update_prescription: NewPrescription,
+        prescription_id: Uuid,
+    ) -> QueryResult<Self> {
+        diesel::update(
+            prescriptions::table.filter(prescriptions::dsl::prescription_id.eq(prescription_id)),
+        )
+        .set(update_prescription)
+        .returning(Self::as_returning())
+        .get_result::<Self>(db_conn)
     }
 }

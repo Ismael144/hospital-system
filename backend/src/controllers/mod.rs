@@ -1,8 +1,9 @@
-pub mod patient;
-pub mod user;
-pub mod visit;
 pub mod bed;
 pub mod medication;
+pub mod patient;
+pub mod prescription;
+pub mod user;
+pub mod visit;
 
 use std::collections::HashMap;
 use validator::Validate;
