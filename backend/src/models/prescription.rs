@@ -177,4 +177,16 @@ impl Prescription {
         .returning(Self::as_returning())
         .get_result::<Self>(db_conn)
     }
+
+    /// Delete a prescription by prescription_id
+    pub async fn delete_prescription(
+        db_conn: &mut PgConnection,
+        prescription_id: Uuid,
+    ) -> QueryResult<Prescription> {
+        diesel::delete(
+            prescriptions::table.filter(prescriptions::dsl::prescription_id.eq(prescription_id)),
+        )
+        .returning(Self::as_returning())
+        .get_result::<Self>(db_conn)
+    }
 }

@@ -43,6 +43,7 @@ pub fn base_handler_service_config(cfg: &mut web::ServiceConfig) {
             .configure(beds::config)
             .configure(medications::config)
             .configure(patients::config)
+            .configure(prescriptions::config)
             .configure(users::config)
             .configure(uploads::config),
     );

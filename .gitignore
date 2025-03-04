@@ -1,6 +1,6 @@
 backend/target
 backend/.idea
-backend/Cargo.lock
+backend/_.rs
 frontend2
 frontend/node_modules
 .vscode

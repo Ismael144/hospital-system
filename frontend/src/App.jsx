@@ -12,6 +12,8 @@ import { PatientCreate, PatientIndex, PatientDetail } from './pages/patients'
 import { BedIndex, BedCreate, BedUpdate, BedDetails } from './pages/bed'
 // Medication imports
 import { MedicationIndex, MedicationCreate, MedicationUpdate, MedicationDetails } from './pages/medications'
+// Prescription imports
+import { PrescriptionIndex, PrescriptionCreate, PrescriptionUpdate, PrescriptionDetails } from './pages/prescriptions'
 
 function App() {
   return (
@@ -28,17 +30,26 @@ function App() {
                 <Route path="create/" element={<PatientCreate />} />
                 <Route path=":id" element={<PatientDetail />} />
               </Route>
+
               <Route path="/beds">
                 <Route path="" element={<BedIndex />} index />
                 <Route path=":id/" element={<BedDetails />} index />
                 <Route path="create" element={<BedCreate />} />
                 <Route path=":bedId/edit" element={<BedUpdate />} />
               </Route>
+
               <Route path="/medications">
                 <Route path="" element={<MedicationIndex />} index />
                 <Route path=":id/" element={<MedicationDetails />} index />
                 <Route path="create" element={<MedicationCreate />} />
                 <Route path=":medicationId/edit" element={<MedicationUpdate />} />
+              </Route>
+
+              <Route path="/prescriptions">
+                <Route path="" element={<PrescriptionIndex />} index />
+                <Route path=":id/" element={<PrescriptionDetails />} index />
+                <Route path="create" element={<PrescriptionCreate />} />
+                <Route path=":prescriptionId/edit" element={<PrescriptionUpdate />} />
               </Route>
             </Route>
           </Routes>

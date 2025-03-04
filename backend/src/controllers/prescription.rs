@@ -37,4 +37,9 @@ impl PrescriptionController {
             Err(error_hashmap) => Err(error_hashmap),
         }
     }
+    
+    /// Delete prescription record
+    pub async fn delete_prescription(db_conn: &mut PgConnection, prescription_id: Uuid) -> ControllerResult<()> {
+        Prescription::delete_prescription(db_conn, prescription_id).await.map(|_| ()).map_err(|_| ErrorArchive::NotFound)
+    }
 }

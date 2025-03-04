@@ -89,9 +89,6 @@ impl BedController {
 
     /// Delete bed record
     pub async fn delete_bed(db_conn: &mut PgConnection, bed_id: Uuid) -> ControllerResult<()> {
-        match Bed::delete_bed(db_conn, bed_id).await {
-            Ok(_) => Ok(()),
-            Err(_) => Err(ErrorArchive::NotFound),
-        }
+        Bed::delete_bed(db_conn, bed_id).await.map(|_| ()).map_err(|_| ErrorArchive::NotFound)
     }
 }

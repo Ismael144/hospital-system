@@ -33,6 +33,7 @@ const RenderIndexPage = ({ name, title, endpoint, columns }) => {
             );
 
             const dataResponse = response.data.results;
+            console.log("Data Response: ", dataResponse)
             const modelData = dataResponse.data;
             const { items_per_page } = dataResponse.pagination;
             const totalPages = dataResponse.total_pages;
