@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+
 use super::APIResponse;
 use super::HandlerResult;
 use crate::auth::middleware::AuthMiddleware;

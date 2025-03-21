@@ -76,21 +76,20 @@ pub async fn get_by_id(
         Uuid::parse_str(&prescription_id.into_inner()).unwrap(),
     );
 
-    Prescription::get_by_id(db_conn, prescription_id)
+    match Prescription::get_by_id(db_conn, prescription_id)
         .await
         .unwrap()
-        .map(|prescription| {
-            Ok(
-                HttpResponse::Ok().json(APIResponse::<PrescriptionWithConsultationAndMedication> {
-                    status_code: 200,
-                    success: true,
-                    errors: None,
-                    results: Some(prescription),
-                }),
-            )
-            .map_err(|_| ErrorArchive::NotFound)
-        })
-        .unwrap()
+    {
+        Some(prescription) => Ok(HttpResponse::Ok().json(APIResponse::<
+            PrescriptionWithConsultationAndMedication,
+        > {
+            status_code: 200,
+            success: true,
+            errors: None,
+            results: Some(prescription),
+        })),
+        None => Err(ErrorArchive::NotFound),
+    }
 }
 
 #[post("")]
