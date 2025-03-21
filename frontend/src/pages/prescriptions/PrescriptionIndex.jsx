@@ -7,7 +7,7 @@ import axios from 'axios';
 
 const PrescriptionIndex = () => {
   const navigate = useNavigate()
-  
+
   const handleDelete = async (itemId) => {
     const accessToken = localStorage.getItem("access_token");
     try {

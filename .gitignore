@@ -1,7 +1,8 @@
+.vscode
+_.rs
 backend/target
 backend/.idea
 backend/_.rs
 frontend2
 frontend/node_modules
-.vscode
-_.rs
+frontend/todo.txt

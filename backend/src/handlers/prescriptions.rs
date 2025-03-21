@@ -88,8 +88,9 @@ pub async fn get_by_id(
                     results: Some(prescription),
                 }),
             )
+            .map_err(|_| ErrorArchive::NotFound)
         })
-        .map_err(|_| ErrorArchive::NotFound)
+        .unwrap()
 }
 
 #[post("")]
@@ -177,12 +178,12 @@ pub async fn delete_prescription(
 
     PrescriptionController::delete_prescription(db_conn, prescription_id)
         .await
-        .map(|_| 
+        .map(|_| {
             HttpResponse::Ok().json(APIResponse::<String> {
                 status_code: 200,
                 errors: None,
                 results: Some(String::from("Success")),
                 success: true,
             })
-        )
+        })
 }
