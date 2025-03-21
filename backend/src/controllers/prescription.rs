@@ -3,10 +3,11 @@ use crate::error_archive::ErrorArchive;
 use crate::models::prescription::{NewPrescription, Prescription};
 use diesel::PgConnection;
 use futures::executor::block_on;
-use std::collections::HashMap;
 use uuid::Uuid;
 
 pub struct PrescriptionController;
+
+impl Controller for PrescriptionController {}
 
 impl PrescriptionController {
     /// Create a new prescription into the database
@@ -26,20 +27,27 @@ impl PrescriptionController {
         update_prescription: NewPrescription,
         prescription_id: Uuid,
     ) -> ValidationControllerResult<Prescription> {
-        match new_model_validate(&update_prescription) {
-            Ok(_) => Ok(Prescription::update_prescription_by_id(
-                db_conn,
-                update_prescription,
-                prescription_id,
-            )
-            .await
-            .unwrap()),
-            Err(error_hashmap) => Err(error_hashmap),
-        }
+        new_model_validate(&update_prescription).map(|_| {
+            futures::executor::block_on(async move {
+                Prescription::update_prescription_by_id(
+                    db_conn,
+                    update_prescription,
+                    prescription_id,
+                )
+                .await
+                .unwrap()
+            })
+        })
     }
-    
+
     /// Delete prescription record
-    pub async fn delete_prescription(db_conn: &mut PgConnection, prescription_id: Uuid) -> ControllerResult<()> {
-        Prescription::delete_prescription(db_conn, prescription_id).await.map(|_| ()).map_err(|_| ErrorArchive::NotFound)
+    pub async fn delete_prescription(
+        db_conn: &mut PgConnection,
+        prescription_id: Uuid,
+    ) -> ControllerResult<()> {
+        Prescription::delete_prescription(db_conn, prescription_id)
+            .await
+            .map(|_| ())
+            .map_err(|_| ErrorArchive::NotFound)
     }
 }

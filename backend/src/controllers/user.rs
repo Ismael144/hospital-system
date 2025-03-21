@@ -13,7 +13,7 @@ impl UserController {
         db_conn: &mut PgConnection,
         new_user: NewUser,
     ) -> ValidationControllerResult<User> {
-        return match new_model_validate(&new_user) {
+        match new_model_validate(&new_user) {
             Ok(_) => {
                 // Initialize error_hashmap for backend database errors
                 let mut error_hashmap: HashMap<String, String> = HashMap::new();
@@ -64,6 +64,6 @@ impl UserController {
                 }
             }
             Err(signup_errors) => Err(signup_errors),
-        };
+        }
     }
 }

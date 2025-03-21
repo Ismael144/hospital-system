@@ -1,5 +1,7 @@
 use super::{patient::Patient, Pagination, QueryResult};
-use crate::impls::serde_impls::{option_bigdecimal_serialize, option_uuid_serialize, uuid_serialize};
+use crate::impls::serde_impls::{
+    option_bigdecimal_serialize, option_uuid_serialize, uuid_serialize,
+};
 use crate::schema::visits;
 use bigdecimal::BigDecimal;
 use chrono::{DateTime, Utc};
@@ -56,8 +58,8 @@ pub struct NewVisit {
 /// This struct represents the structure of having full patient record and visit record
 #[derive(Serialize)]
 pub struct VisitWithPatient {
-    patient: Patient, 
-    visit: Visit
+    patient: Patient,
+    visit: Visit,
 }
 
 impl Visit {

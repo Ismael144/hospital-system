@@ -9,16 +9,6 @@ pub struct MedicationController;
 
 impl Controller for MedicationController {}
 
-// Support for async closures
-// new_model_validate(&new_medication).map(async |_| {
-//     // Creating a new medication
-//     let created_medication = Medication::new(db_conn, new_medication).await.unwrap();
-
-//     // Check for duplicate name entry here
-
-//     Ok(created_medication)
-// })
-
 impl MedicationController {
     /// Create new medication
     pub async fn create_medication(

@@ -101,10 +101,10 @@ const PrescriptionIndex = () => {
           >
             <i className="fas fa-trash"></i>
           </button>
-          <NavLink to={`/prescriptions/${row.id}`} className="btn btn-primary btn-sm me-2">
+          <NavLink to={`/prescriptions/${row.prescription.id}`} className="btn btn-primary btn-sm me-2">
             <i className="fas fa-eye"></i>
           </NavLink>
-          <NavLink to={`/prescriptions/${row.id}/edit`} className="btn btn-warning btn-sm">
+          <NavLink to={`/prescriptions/${row.prescription.id}/edit`} className="btn btn-warning btn-sm">
             <i className="fas fa-pen"></i>
           </NavLink>
         </div>
