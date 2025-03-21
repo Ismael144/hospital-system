@@ -1,6 +1,6 @@
 use actix_web::{error::JsonPayloadError, HttpResponse, ResponseError};
 use diesel::result::Error as DieselError;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use thiserror::Error;
 use validator::ValidationErrors;

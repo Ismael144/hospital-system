@@ -78,7 +78,9 @@ where
                     match AuthService::validate_token(token) {
                         Ok(token_data) => {
                             // Check if the user's role is allowed
-                            if allowed_roles.contains(&token_data.claims.role) || allowed_roles.len() == 0 {
+                            if allowed_roles.contains(&token_data.claims.role)
+                                || allowed_roles.len() == 0
+                            {
                                 // Add claims to request extensions for later use
                                 req.extensions_mut().insert(token_data.claims);
                                 service.call(req).await

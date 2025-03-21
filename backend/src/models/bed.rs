@@ -50,16 +50,16 @@ impl Bed {
     /// Create a new bed into database
     pub async fn new(db_conn: &mut PgConnection, new_bed: NewBed) -> QueryResult<Bed> {
         diesel::insert_into(beds::table)
-        .values(new_bed)
-        .returning(Bed::as_returning())
-        .get_result(db_conn)
+            .values(new_bed)
+            .returning(Bed::as_returning())
+            .get_result(db_conn)
     }
 
     /// Returns the row count of the table
     pub async fn row_count(db_conn: &mut PgConnection) -> QueryResult<i64> {
         beds::table.count().get_result::<i64>(db_conn)
     }
-    
+
     /// Paginated representation for select all
     pub async fn paginate(
         connection: &mut PgConnection,

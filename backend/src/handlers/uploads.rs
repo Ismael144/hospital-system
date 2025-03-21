@@ -1,6 +1,6 @@
+use crate::auth::middleware::AuthMiddleware;
 use crate::models::user::UserRole;
 use actix_web::web::{self, ServiceConfig};
-use crate::auth::middleware::AuthMiddleware;
 
 pub fn config(cfg: &mut ServiceConfig) {
     cfg.service(

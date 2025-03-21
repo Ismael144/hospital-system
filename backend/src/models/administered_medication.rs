@@ -1,4 +1,7 @@
-use crate::impls::serde_impls::{option_bigdecimal_serialize, option_naive_date_time_serialize, option_uuid_serialize, uuid_serialize};
+use crate::impls::serde_impls::{
+    option_bigdecimal_serialize, option_naive_date_time_serialize, option_uuid_serialize,
+    uuid_serialize,
+};
 use crate::schema::administered_medications;
 use bigdecimal::BigDecimal;
 use chrono::NaiveDateTime;

@@ -77,12 +77,12 @@ impl User {
     pub async fn select_all(db_conn: &mut PgConnection) -> QueryResult<Vec<User>> {
         users::table.load(db_conn)
     }
-    
+
     /// Returns row count
     pub async fn row_count(db_conn: &mut PgConnection) -> QueryResult<i64> {
         users::table.count().get_result::<i64>(db_conn)
     }
-    
+
     /// The paginated data for users model, it takes in the Pagination struct
     pub async fn paginate(
         db_conn: &mut PgConnection,

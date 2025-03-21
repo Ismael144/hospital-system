@@ -64,9 +64,7 @@ impl MedicationController {
                 // Checking whether the medication name already exists in database
                 if medication_by_name.is_some()
                     && medication_by_name
-                        .map(|med| {
-                            med.name.to_lowercase() != update_medication.name.to_lowercase()
-                        })
+                        .map(|med| med.name.to_lowercase() != update_medication.name.to_lowercase())
                         .unwrap()
                 {
                     error_hashmap.insert(

@@ -74,33 +74,33 @@ async fn paginated_patients(
 //         emergency_phone: form.emergency_phone,
 //         registered_by: form.registered_by.and_then(|id| Uuid::parse_str(&id).ok()),
 //     };
-    
+
 //     // Handle file upload if present
 //     if let Some(file) = form.profile_photo {
 //         let upload_dir = "uploads";
 //         std::fs::create_dir_all(upload_dir).expect("Failed to create upload directory");
-        
+
 //         let filename = format!(
-//             "{}/patient_{}_{}.{}", 
+//             "{}/patient_{}_{}.{}",
 //             upload_dir,
 //             Uuid::new_v4(),
 //             chrono::Utc::now().timestamp(),
 //             file.content_type.subtype()
 //         );
-        
+
 //         // Save file
 //         file.save(&filename).await?;
 //         patient.profile_photo = Some(filename);
 //     }
-    
+
 //     // Validate patient data
 //     if let Err(validation_errors) = patient.validate() {
 //         return Ok(HttpResponse::BadRequest().json(validation_errors));
 //     }
-    
+
 //     // Insert into database (just an example)
 //     // let inserted_patient = db::insert_patient(&patient).await?;
-    
+
 //     Ok(HttpResponse::Ok().json(patient))
 // }
 

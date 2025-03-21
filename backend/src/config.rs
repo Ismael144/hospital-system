@@ -16,7 +16,6 @@ pub fn init_tracing() {
     tracing::info!("Logging initialized!");
 }
 
-
 /// CORS(Cross Origin Resource Sharing) Configuration
 pub fn configure_cors() -> Cors {
     Cors::default()

@@ -172,7 +172,7 @@ pub mod uuid_serialize {
 }
 
 pub mod option_uuid_serialize {
-    use serde::{self, Deserializer, Serializer, Deserialize};
+    use serde::{self, Deserialize, Deserializer, Serializer};
     use uuid::Uuid;
 
     // Serialize Option<Uuid> to either string or null

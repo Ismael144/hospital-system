@@ -28,7 +28,7 @@ pub fn validate_phone_number(phone_number: &str) -> ValidationResult {
 /// Checks whether a given field in a struct is empty
 pub fn is_empty(value: &str) -> ValidationResult {
     if value.len() == 0 {
-        let mut validation_err = ValidationError::new("is_empty"); 
+        let mut validation_err = ValidationError::new("is_empty");
         validation_err.message = Some("This field is required and cannot be empty!".into());
 
         Err(validation_err)

@@ -4,11 +4,11 @@ pub mod controllers;
 pub mod db;
 pub mod error_archive;
 pub mod extractors;
+pub mod field_validations;
 pub mod handlers;
 pub mod impls;
 pub mod models;
 pub mod schema;
-pub mod field_validations;
 
 use actix_web::{web, App, HttpServer};
 use tracing::info;

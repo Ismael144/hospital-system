@@ -11,7 +11,7 @@ use actix_web::{delete, get, post};
 use actix_web::{web, HttpResponse};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use uuid::Uuid; 
+use uuid::Uuid;
 
 // Handling user avatar upload
 #[derive(Serialize, Deserialize, Debug)]
